@@ -1,0 +1,148 @@
+/* ARBIS Prototype Styles - responsive, modern */
+:root{
+  --bg:#f6f8fa;
+  --card:#ffffff;
+  --muted:#6b7280;
+  --accent:#FF6600; /* orange */
+  --accent-2:#007ACC; /* blue */
+  --shadow: 0 6px 18px rgba(20,24,28,0.08);
+  --radius:10px;
+  --max-width:1100px;
+  --gap:18px;
+  --glass: rgba(255,255,255,0.85);
+  --duration:300ms;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  color-scheme: light;
+}
+
+*{box-sizing:border-box}
+html,body,#app{height:100%}
+body{
+  margin:0;
+  background:linear-gradient(180deg,#fbfbfd 0%, var(--bg) 100%);
+  color:#111827;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  padding:18px;
+}
+
+/* App layout */
+.app{max-width:var(--max-width);margin:0 auto}
+.header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:16px;
+  margin-bottom:18px;
+}
+.brand{display:flex;gap:12px;align-items:center}
+.logo{flex:0 0 36px}
+.brand h1{margin:0;font-size:20px;color:var(--accent)}
+.subtitle{margin:0;font-size:12px;color:var(--muted)}
+
+.header-actions{display:flex;gap:8px;align-items:center}
+.btn{
+  padding:8px 12px;border-radius:8px;border:1px solid rgba(0,0,0,0.06);
+  background:#fff;cursor:pointer;font-weight:600;transition:all var(--duration);
+}
+.btn:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+.btn.primary{background:var(--accent);color:white;border:none}
+.btn.outline{background:transparent;border:1px solid rgba(0,0,0,0.06)}
+.btn.ghost{background:transparent;border:none;color:var(--muted)}
+.btn:focus{outline:2px solid rgba(0,122,204,0.12);outline-offset:2px}
+
+.layout{display:grid;grid-template-columns:220px 1fr;gap:16px;align-items:start}
+
+/* Sidebar */
+.sidebar{background:transparent}
+.module-nav{list-style:none;padding:8px;margin:0;display:flex;flex-direction:column;gap:6px}
+.nav-link{
+  padding:10px;border-radius:8px;text-align:left;background:linear-gradient(180deg,#fff,#fbfbfb);
+  border:1px solid rgba(0,0,0,0.04);cursor:pointer;font-weight:600;color:var(--accent-2)
+}
+.nav-link:hover{background:var(--accent-2);color:white;transform:translateX(4px)}
+.nav-link:active{transform:translateX(6px)}
+
+.main{min-height:60vh}
+
+/* Generic card */
+.card{
+  background:var(--card);
+  border-radius:var(--radius);
+  padding:18px;
+  box-shadow:var(--shadow);
+  margin-bottom:16px;
+}
+
+/* Login */
+.login-card{max-width:480px;margin:28px auto;padding:28px;text-align:left}
+.login-form{display:flex;flex-direction:column;gap:12px;margin-top:8px}
+.login-form label{display:flex;flex-direction:column;font-weight:600;font-size:13px;color:#111827}
+.login-form input{
+  padding:10px;border-radius:8px;border:1px solid rgba(0,0,0,0.08);
+  margin-top:8px;font-size:14px;
+}
+.actions{display:flex;gap:8px;justify-content:flex-end}
+
+/* Dashboard */
+.dashboard-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.cards-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--gap);margin-bottom:12px}
+.module-card{padding:14px;cursor:pointer;display:flex;flex-direction:column;gap:8px;transition:transform var(--duration),box-shadow var(--duration)}
+.module-card:hover{transform:translateY(-6px);box-shadow:0 12px 28px rgba(16,24,40,0.1)}
+.card-icon{width:56px;height:56px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:800;color:white}
+.card-icon.orange{background:linear-gradient(180deg,var(--accent),#ff8a3c)}
+.card-icon.blue{background:linear-gradient(180deg,var(--accent-2),#1a9cff)}
+.card-footer{margin-top:auto;font-weight:700;color:var(--accent-2);font-size:13px}
+
+/* Features & module pages */
+.module-page .module-meta{margin-bottom:12px}
+.features ul{list-style:none;padding:0;margin:0 0 12px 0}
+.features li{padding:8px 0;border-bottom:1px dashed #f1f5f9;display:flex;gap:10px;align-items:center}
+.core{color:var(--accent);font-weight:700;margin-right:6px}
+.secondary{color:var(--accent-2);font-weight:700;margin-right:6px}
+.example{margin-top:12px}
+.prompt-flow{display:flex;flex-direction:column;gap:8px}
+.step{background:#fff7ef;border-left:4px solid var(--accent);padding:10px;border-radius:8px}
+.doc-preview{background:#f3f7ff;padding:12px;border-radius:8px}
+.triage .pill{display:inline-block;padding:8px 10px;border-radius:14px;margin-right:8px}
+.pill.high{background:#fff1f0;color:#b91c1c}
+.pill.med{background:#fff7ed;color:#a16207}
+.pill.low{background:#f0fdf4;color:#166534}
+
+/* Word cloud */
+.word-cloud{padding:14px;background:#fffaf5;border-radius:8px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+
+/* Usage chart */
+.usage-chart{display:flex;gap:10px;align-items:end;padding:14px}
+.usage-chart .bar{width:40px;background:linear-gradient(180deg,#007acc,#7cc1ff);border-radius:6px;display:flex;align-items:end;justify-content:center;color:white;padding-bottom:6px;font-weight:700}
+
+/* Framework diagram */
+.framework-diagram{display:flex;gap:12px;margin-top:12px}
+.fw-col{flex:1}
+.fw-box{background:linear-gradient(180deg,#ffffff,#fbfbfb);border-radius:8px;padding:18px;text-align:center;border:1px solid rgba(0,0,0,0.04)}
+.fw-box.primary{border:2px solid var(--accent);background:linear-gradient(180deg,#fff7ef,#fff1e6)}
+
+/* About section */
+.about-section{max-width:820px;margin:0 auto}
+
+/* Animations & transitions */
+.screen{transition:opacity var(--duration) ease, transform var(--duration) ease}
+.screen[hidden]{display:none}
+.animate-up{transform:translateY(8px);opacity:0;animation:up var(--duration) ease forwards}
+@keyframes up{to{transform:none;opacity:1}}
+
+/* Responsive */
+@media (max-width:980px){
+  .layout{grid-template-columns:1fr;gap:12px}
+  .cards-grid{grid-template-columns:repeat(2,1fr)}
+  .sidebar{order:2}
+  .header{flex-direction:column;align-items:flex-start;gap:8px}
+}
+@media (max-width:640px){
+  .cards-grid{grid-template-columns:1fr}
+  .module-card{flex-direction:row;align-items:center}
+  .card-icon{width:48px;height:48px}
+  .brand h1{font-size:18px}
+}
+.muted{color:var(--muted)}
+.small{font-size:12px}

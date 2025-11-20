@@ -1,0 +1,377 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ARBIS — Agentic Resource & Business Information System</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- App Container -->
+  <div class="app">
+
+    <!-- Header -->
+    <header class="header">
+      <div class="brand">
+        <div class="logo" aria-hidden="true">
+          <!-- simple geometric logo -->
+          <svg width="36" height="36" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
+            <rect x="0" y="0" width="36" height="36" rx="6" fill="#FF6600"/>
+            <path d="M8 24 L18 10 L28 24 Z" fill="#fff"/>
+          </svg>
+        </div>
+        <div>
+          <h1>ARBIS</h1>
+          <p class="subtitle">Agentic Resource & Business Information System</p>
+        </div>
+      </div>
+
+      <nav class="header-actions" aria-label="Top navigation">
+        <button id="resetBtn" class="btn ghost" title="Reset to Dashboard">Reset</button>
+        <button id="aboutToggle" class="btn ghost" title="About ARBIS">About</button>
+      </nav>
+    </header>
+
+    <!-- Layout -->
+    <div class="layout">
+
+      <!-- Sidebar -->
+      <aside class="sidebar" aria-label="Main modules">
+        <ul class="module-nav" id="moduleNav">
+          <li><button class="nav-link" data-target="guided">Guided Flow</button></li>
+          <li><button class="nav-link" data-target="knowledge">Knowledge Portal</button></li>
+          <li><button class="nav-link" data-target="complaints">Complaints Assistant</button></li>
+          <li><button class="nav-link" data-target="vc">VC Assistant</button></li>
+          <li><button class="nav-link" data-target="verbatim">Verbatim Analyzer</button></li>
+          <li><button class="nav-link" data-target="usage">Usage Tracker</button></li>
+        </ul>
+      </aside>
+
+      <!-- Main content -->
+      <main class="main" id="mainContent">
+
+        <!-- Login Screen (initial view) -->
+        <section id="login" class="screen active" aria-labelledby="loginTitle">
+          <div class="card login-card animate-up">
+            <h2 id="loginTitle">Welcome to ARBIS</h2>
+            <p class="muted">A lightweight prototype — enter any username and password to continue.</p>
+            <form id="loginForm" class="login-form" onsubmit="return false;">
+              <label>
+                Username
+                <input type="text" id="username" placeholder="your.name" required />
+              </label>
+              <label>
+                Password
+                <input type="password" id="password" placeholder="••••••••" required />
+              </label>
+              <div class="actions">
+                <button id="loginBtn" class="btn primary">Login</button>
+                <button id="demoBtn" class="btn outline">Use Demo</button>
+              </div>
+            </form>
+            <p class="small muted">No real authentication is performed in this prototype.</p>
+          </div>
+        </section>
+
+        <!-- Dashboard / Front Page -->
+        <section id="dashboard" class="screen" aria-labelledby="dashTitle" hidden>
+          <div class="dashboard-header">
+            <div>
+              <h2 id="dashTitle">Dashboard</h2>
+              <p class="muted">Quick access to ARBIS modules and intelligence resources.</p>
+            </div>
+            <div class="dash-actions">
+              <button class="btn" id="openAbout">About</button>
+            </div>
+          </div>
+
+          <!-- Quick Module Cards -->
+          <div class="cards-grid" id="moduleGrid">
+            <article class="card module-card" data-target="guided" tabindex="0" role="button" aria-pressed="false">
+              <div class="card-icon orange">GF</div>
+              <h3>Guided Flow</h3>
+              <p class="muted">Step-by-step e-prompts to guide agents through interactions.</p>
+              <div class="card-footer">Launch</div>
+            </article>
+
+            <article class="card module-card" data-target="knowledge" tabindex="0" role="button" aria-pressed="false">
+              <div class="card-icon blue">KP</div>
+              <h3>Knowledge Portal</h3>
+              <p class="muted">Searchable knowledge base, articles, and SOPs.</p>
+              <div class="card-footer">Explore</div>
+            </article>
+
+            <article class="card module-card" data-target="complaints" tabindex="0" role="button" aria-pressed="false">
+              <div class="card-icon orange">CA</div>
+              <h3>Complaints Assistant</h3>
+              <p class="muted">Capture, triage and suggest remediation paths for complaints.</p>
+              <div class="card-footer">Assist</div>
+            </article>
+
+            <article class="card module-card" data-target="vc" tabindex="0" role="button" aria-pressed="false">
+              <div class="card-icon blue">VC</div>
+              <h3>VC Assistant</h3>
+              <p class="muted">Virtual coach for agent conversations and objections handling.</p>
+              <div class="card-footer">Coach</div>
+            </article>
+
+            <article class="card module-card" data-target="verbatim" tabindex="0" role="button" aria-pressed="false">
+              <div class="card-icon orange">VA</div>
+              <h3>Verbatim Analyzer</h3>
+              <p class="muted">Analyze customer verbatims, extract topics and sentiment.</p>
+              <div class="card-footer">Analyze</div>
+            </article>
+
+            <article class="card module-card" data-target="usage" tabindex="0" role="button" aria-pressed="false">
+              <div class="card-icon blue">UT</div>
+              <h3>Usage Tracker</h3>
+              <p class="muted">Monitor module usage, KPIs and adoption metrics.</p>
+              <div class="card-footer">View</div>
+            </article>
+          </div>
+
+          <!-- ARBIS Intelligence Framework visual -->
+          <section class="framework card">
+            <h3>ARBIS Intelligence Framework</h3>
+            <p class="muted">A simplified visual of the framework showing input → intelligence → action.</p>
+            <div class="framework-diagram" aria-hidden="true">
+              <div class="fw-col">
+                <div class="fw-box">Data Sources<br/><small>Calls, Chat, Docs</small></div>
+              </div>
+              <div class="fw-col">
+                <div class="fw-box primary">Processing<br/><small>NLP • Analytics</small></div>
+              </div>
+              <div class="fw-col">
+                <div class="fw-box">Applications<br/><small>Guided Flow, Assistants</small></div>
+              </div>
+            </div>
+          </section>
+        </section>
+
+        <!-- Module Pages -->
+        <!-- Template structure repeats for each module, hidden by default -->
+        <section id="guided" class="screen module-screen" aria-labelledby="guidedTitle" hidden>
+          <div class="card module-page animate-up">
+            <div class="module-meta">
+              <h2 id="guidedTitle">Guided Flow (E-Prompts)</h2>
+              <p class="muted">Interactive, step-by-step prompts to help agents through calls and chats, ensuring consistency and compliance.</p>
+            </div>
+
+            <div class="features">
+              <h4>Features</h4>
+              <ul>
+                <li><span class="core">★</span> Dynamic Prompts that adapt to inputs</li>
+                <li><span class="core">★</span> Structured scripts with branching logic</li>
+                <li><span class="secondary">▲</span> Suggested phrasings and tone guidance</li>
+                <li><span class="secondary">▲</span> Integration-ready export (CSV)</li>
+              </ul>
+            </div>
+
+            <div class="example">
+              <h4>Example: Step-by-Step Prompt</h4>
+              <div class="prompt-flow">
+                <div class="step">Step 1: Greet customer & verify</div>
+                <div class="step">Step 2: Ask permission to review account</div>
+                <div class="step">Step 3: Suggest resolution paths</div>
+                <div class="step">Step 4: Close with confirmation</div>
+              </div>
+            </div>
+
+            <div class="module-actions">
+              <button class="btn outline backBtn">Back to Dashboard</button>
+              <button class="btn primary" id="guidedReset">Reset</button>
+            </div>
+          </div>
+        </section>
+
+        <section id="knowledge" class="screen module-screen" aria-labelledby="knowledgeTitle" hidden>
+          <div class="card module-page animate-up">
+            <div class="module-meta">
+              <h2 id="knowledgeTitle">Knowledge Portal</h2>
+              <p class="muted">Centralized knowledge base with articles, FAQs, and SOPs for quick agent reference.</p>
+            </div>
+
+            <div class="features">
+              <h4>Features</h4>
+              <ul>
+                <li><span class="core">★</span> Search across documents and articles</li>
+                <li><span class="core">★</span> Suggested articles during agent sessions</li>
+                <li><span class="secondary">▲</span> Versioned SOPs</li>
+                <li><span class="secondary">▲</span> Bookmark & quick access</li>
+              </ul>
+            </div>
+
+            <div class="example">
+              <h4>Example: Article Preview</h4>
+              <div class="doc-preview">
+                <h5>How to handle billing disputes</h5>
+                <p class="muted">Summary: Steps to identify dispute, collect evidence, and offer resolutions.</p>
+              </div>
+            </div>
+
+            <div class="module-actions">
+              <button class="btn outline backBtn">Back to Dashboard</button>
+              <button class="btn primary" id="knowledgeReset">Reset</button>
+            </div>
+          </div>
+        </section>
+
+        <section id="complaints" class="screen module-screen" aria-labelledby="complaintsTitle" hidden>
+          <div class="card module-page animate-up">
+            <div class="module-meta">
+              <h2 id="complaintsTitle">Complaints Assistant</h2>
+              <p class="muted">Streamlined complaint capture, triage, prioritisation and suggested next steps.</p>
+            </div>
+
+            <div class="features">
+              <h4>Features</h4>
+              <ul>
+                <li><span class="core">★</span> Complaint intake templates</li>
+                <li><span class="core">★</span> Auto-triage by severity & tags</li>
+                <li><span class="secondary">▲</span> Suggested remediation scripts</li>
+                <li><span class="secondary">▲</span> Escalation workflows</li>
+              </ul>
+            </div>
+
+            <div class="example">
+              <h4>Example: Triage</h4>
+              <div class="triage">
+                <div class="pill high">High - Escalate</div>
+                <div class="pill med">Medium - Follow-up</div>
+                <div class="pill low">Low - Monitor</div>
+              </div>
+            </div>
+
+            <div class="module-actions">
+              <button class="btn outline backBtn">Back to Dashboard</button>
+              <button class="btn primary" id="complaintsReset">Reset</button>
+            </div>
+          </div>
+        </section>
+
+        <section id="vc" class="screen module-screen" aria-labelledby="vcTitle" hidden>
+          <div class="card module-page animate-up">
+            <div class="module-meta">
+              <h2 id="vcTitle">VC Assistant</h2>
+              <p class="muted">Virtual coach for agents: call suggestions, objection handling and live tips.</p>
+            </div>
+
+            <div class="features">
+              <h4>Features</h4>
+              <ul>
+                <li><span class="core">★</span> Real-time suggestions for objections</li>
+                <li><span class="core">★</span> Role-play practice mode</li>
+                <li><span class="secondary">▲</span> Performance feedback summaries</li>
+                <li><span class="secondary">▲</span> Micro-coaching nudges</li>
+              </ul>
+            </div>
+
+            <div class="example">
+              <h4>Example: Objection Handler</h4>
+              <blockquote class="muted">Customer: "The price is too high." — Suggested response: "I understand — can we explore a solution that meets your budget?"</blockquote>
+            </div>
+
+            <div class="module-actions">
+              <button class="btn outline backBtn">Back to Dashboard</button>
+              <button class="btn primary" id="vcReset">Reset</button>
+            </div>
+          </div>
+        </section>
+
+        <section id="verbatim" class="screen module-screen" aria-labelledby="verbatimTitle" hidden>
+          <div class="card module-page animate-up">
+            <div class="module-meta">
+              <h2 id="verbatimTitle">Verbatim Analyzer</h2>
+              <p class="muted">Extract themes, topics, and sentiment from customer verbatims and transcripts.</p>
+            </div>
+
+            <div class="features">
+              <h4>Features</h4>
+              <ul>
+                <li><span class="core">★</span> Topic extraction & tag suggestions</li>
+                <li><span class="core">★</span> Sentiment scoring</li>
+                <li><span class="secondary">▲</span> Word cloud visualizations</li>
+                <li><span class="secondary">▲</span> Export tagged datasets</li>
+              </ul>
+            </div>
+
+            <div class="example">
+              <h4>Example: Quick Analysis</h4>
+              <div class="word-cloud">
+                <span style="font-size:18px">billing</span>
+                <span style="font-size:28px">delay</span>
+                <span style="font-size:14px">refund</span>
+                <span style="font-size:22px">support</span>
+                <span style="font-size:16px">timeout</span>
+              </div>
+            </div>
+
+            <div class="module-actions">
+              <button class="btn outline backBtn">Back to Dashboard</button>
+              <button class="btn primary" id="verbatimReset">Reset</button>
+            </div>
+          </div>
+        </section>
+
+        <section id="usage" class="screen module-screen" aria-labelledby="usageTitle" hidden>
+          <div class="card module-page animate-up">
+            <div class="module-meta">
+              <h2 id="usageTitle">Usage Tracker</h2>
+              <p class="muted">Visualize adoption and module usage over time. Useful for prioritization and ROI analysis.</p>
+            </div>
+
+            <div class="features">
+              <h4>Features</h4>
+              <ul>
+                <li><span class="core">★</span> Module usage dashboard</li>
+                <li><span class="core">★</span> Daily / weekly trends</li>
+                <li><span class="secondary">▲</span> Export reports</li>
+                <li><span class="secondary">▲</span> Adoption heatmaps</li>
+              </ul>
+            </div>
+
+            <div class="example">
+              <h4>Example: Usage Snapshot</h4>
+              <div class="usage-chart">
+                <div class="bar" style="height:60%"><small>Guided</small></div>
+                <div class="bar" style="height:40%"><small>Knowledge</small></div>
+                <div class="bar" style="height:25%"><small>Complaints</small></div>
+                <div class="bar" style="height:45%"><small>VC</small></div>
+                <div class="bar" style="height:35%"><small>Verbatim</small></div>
+                <div class="bar" style="height:50%"><small>Usage</small></div>
+              </div>
+            </div>
+
+            <div class="module-actions">
+              <button class="btn outline backBtn">Back to Dashboard</button>
+              <button class="btn primary" id="usageReset">Reset</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- About / Intro -->
+        <section id="about" class="screen card about-section" hidden>
+          <div class="animate-up">
+            <h2>About ARBIS</h2>
+            <p class="muted">ARBIS is an integrated suite of agent-facing tools — guided flows, knowledge portal, complaints and VC assistants, verbatim analytics and usage insights — designed to improve consistency, compliance and agent performance.</p>
+
+            <h4>Core Features & Intro</h4>
+            <ul>
+              <li><span class="core">★</span> Agent-facing intelligence and coaching</li>
+              <li><span class="core">★</span> Integrated knowledge and analytics</li>
+              <li><span class="secondary">▲</span> Extensible — designed for future integrations</li>
+            </ul>
+
+            <div class="module-actions">
+              <button class="btn outline" id="aboutBack">Close</button>
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
