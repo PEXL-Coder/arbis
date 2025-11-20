@@ -96,7 +96,8 @@ body{
 
 /* Flow rendering */
 .flow-root{padding:12px;border-radius:8px;background:linear-gradient(180deg,#fff,#fbfbfb);border:1px solid rgba(0,0,0,0.04)}
-.flow-question{font-size:18px;font-weight:700;margin-bottom:12px}
+.flow-question{font-size:18px;font-weight:700;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+.flow-question .small-note{font-size:12px;color:var(--muted);font-weight:600}
 .options{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
 .option-btn{padding:10px;border-radius:8px;border:1px solid rgba(0,0,0,0.06);background:#fff;text-align:left;cursor:pointer;font-weight:600;transition:all 160ms}
 .option-btn:hover{transform:translateY(-3px);box-shadow:var(--shadow)}
@@ -110,7 +111,7 @@ body{
 .flow-controls{display:flex;gap:8px;justify-content:flex-end;margin-top:8px}
 .flow-notes{background:#fffdf6;border-left:4px solid var(--accent);padding:12px;border-radius:8px;margin-top:12px}
 
-/* Example & module pages (features sections removed) */
+/* Example & module pages */
 .module-page .module-meta{margin-bottom:12px}
 .example{margin-top:12px}
 .prompt-flow{display:flex;flex-direction:column;gap:8px}
