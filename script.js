@@ -1,803 +1,1048 @@
-// ARBIS Prototype - enhanced Guided Flow with Call Type selection and sample flows
+const guidedFlowSteps = [
+    {
+        id: 0,
+        question: "Has ID&V (Identity and Verification) been passed?",
+        phrases: [
+            "Before we proceed, I need to verify your identity for security purposes.",
+            "Can you confirm your full name and date of birth please?",
+            "For data protection, I'll need to verify a few details with you."
+        ],
+        options: ["Yes", "No"],
+        next: { Yes: 1, No: 29 }
+    },
+    {
+        id: 1,
+        question: "Check for listing changes - Are there any changes to the vehicle or driver details?",
+        phrases: [
+            "Let me check if there are any recent changes to your policy.",
+            "I can see we need to review some policy details.",
+            "I'll just verify the current status of your policy."
+        ],
+        options: ["Changes Found", "No Changes"],
+        next: { "Changes Found": 2, "No Changes": 20 }
+    },
+    {
+        id: 2,
+        question: "Confirm MTA (Mid-Term Adjustment) - Would you like to proceed with the policy change?",
+        phrases: [
+            "I can process this mid-term adjustment for you.",
+            "Let's go through the changes to your policy.",
+            "I'll help you make these changes to your policy."
+        ],
+        options: ["Proceed with MTA", "Cancel"],
+        next: { "Proceed with MTA": 3, "Cancel": 28 }
+    },
+    {
+        id: 3,
+        question: "Confirm the effective date - When would you like this change to take effect?",
+        phrases: [
+            "When would you like these changes to start?",
+            "Can you confirm the date you want this to be effective from?",
+            "What date should I set for this change?"
+        ],
+        options: ["Today", "Specific Future Date", "Policy Renewal Date"],
+        next: { "Today": 4, "Specific Future Date": 4, "Policy Renewal Date": 4 }
+    },
+    {
+        id: 4,
+        question: "Confirm reason for change - What is the reason for this policy modification?",
+        phrases: [
+            "Can you tell me why you're making this change?",
+            "What's prompting this policy modification?",
+            "Help me understand the reason for this change."
+        ],
+        options: ["Vehicle Change", "Driver Change", "Address Change", "Cover Change", "Other"],
+        next: { "Vehicle Change": 5, "Driver Change": 6, "Address Change": 20, "Cover Change": 14, "Other": 20 }
+    },
+    {
+        id: 5,
+        question: "Confirm main driver - Who will be the main driver of this vehicle?",
+        phrases: [
+            "Who will be the primary driver of the vehicle?",
+            "Can you confirm who the main driver is?",
+            "Who will be driving this vehicle most often?"
+        ],
+        options: ["Policyholder", "Named Driver", "New Driver"],
+        next: { "Policyholder": 7, "Named Driver": 7, "New Driver": 6 }
+    },
+    {
+        id: 6,
+        question: "Confirm keeper - Who is the registered keeper of the vehicle?",
+        phrases: [
+            "Who is listed as the registered keeper?",
+            "Can you confirm who owns the vehicle?",
+            "Who is the legal owner of the vehicle?"
+        ],
+        options: ["Policyholder", "Finance Company", "Family Member", "Other"],
+        next: { "Policyholder": 7, "Finance Company": 7, "Family Member": 7, "Other": 7 }
+    },
+    {
+        id: 7,
+        question: "Confirm mileage - What is the estimated annual mileage?",
+        phrases: [
+            "How many miles do you estimate driving per year?",
+            "What's your annual mileage?",
+            "Can you confirm the yearly mileage?"
+        ],
+        options: ["Under 5,000", "5,000-10,000", "10,000-15,000", "Over 15,000"],
+        next: { "Under 5,000": 8, "5,000-10,000": 8, "10,000-15,000": 8, "Over 15,000": 8 }
+    },
+    {
+        id: 8,
+        question: "Confirm transfer - Is this vehicle being transferred from another policy?",
+        phrases: [
+            "Are you transferring this from another policy?",
+            "Is this a transfer from another insurer?",
+            "Have you had previous insurance on this vehicle?"
+        ],
+        options: ["Yes - Transfer", "No - New Policy"],
+        next: { "Yes - Transfer": 9, "No - New Policy": 9 }
+    },
+    {
+        id: 9,
+        question: "Confirm engine size - What is the engine capacity (cc)?",
+        phrases: [
+            "What size is the engine?",
+            "Can you confirm the engine capacity?",
+            "What's the cc of the vehicle?"
+        ],
+        options: ["Up to 1000cc", "1001-1500cc", "1501-2000cc", "Over 2000cc"],
+        next: { "Up to 1000cc": 10, "1001-1500cc": 10, "1501-2000cc": 10, "Over 2000cc": 10 }
+    },
+    {
+        id: 10,
+        question: "Confirm modifications - Does the vehicle have any modifications?",
+        phrases: [
+            "Has the vehicle been modified in any way?",
+            "Are there any modifications to the vehicle?",
+            "Has anything been changed from the manufacturer's spec?"
+        ],
+        options: ["Yes", "No"],
+        next: { "Yes": 11, "No": 11 }
+    },
+    {
+        id: 11,
+        question: "Confirm registered keeper - Is the vehicle registered at your current address?",
+        phrases: [
+            "Is the vehicle registered at your address?",
+            "Can you confirm the vehicle registration address?",
+            "Where is the vehicle registered?"
+        ],
+        options: ["Yes - Current Address", "No - Different Address"],
+        next: { "Yes - Current Address": 12, "No - Different Address": 12 }
+    },
+    {
+        id: 12,
+        question: "Confirm purchase date - When was the vehicle purchased?",
+        phrases: [
+            "When did you purchase the vehicle?",
+            "What's the purchase date of the vehicle?",
+            "When did you acquire this vehicle?"
+        ],
+        options: ["Within last month", "1-6 months ago", "6-12 months ago", "Over 12 months ago"],
+        next: { "Within last month": 13, "1-6 months ago": 13, "6-12 months ago": 13, "Over 12 months ago": 13 }
+    },
+    {
+        id: 13,
+        question: "Vehicle still held? - Do you still have possession of the vehicle?",
+        phrases: [
+            "Do you still have the vehicle?",
+            "Is the vehicle still in your possession?",
+            "Can you confirm you still own this vehicle?"
+        ],
+        options: ["Yes", "No"],
+        next: { "Yes": 14, "No": 15 }
+    },
+    {
+        id: 14,
+        question: "Type of cover - What level of cover do you require?",
+        phrases: [
+            "What type of insurance cover would you like?",
+            "Which level of cover do you need?",
+            "Let's select your cover type."
+        ],
+        options: ["Comprehensive", "Third Party Fire & Theft", "Third Party Only"],
+        next: { "Comprehensive": 16, "Third Party Fire & Theft": 20, "Third Party Only": 20 }
+    },
+    {
+        id: 15,
+        question: "Search alternative database - The vehicle is no longer held. Should we search for alternative options?",
+        phrases: [
+            "Let me search our system for alternatives.",
+            "I can look for other options for you.",
+            "Shall I search for alternative solutions?"
+        ],
+        options: ["Yes - Search Alternatives", "No - End Call"],
+        next: { "Yes - Search Alternatives": 30, "No - End Call": 28 }
+    },
+    {
+        id: 16,
+        question: "Q. Managed add-ons (GRSC) - Would you like to add Guaranteed Replacement of Stolen Car?",
+        phrases: [
+            "We have an optional add-on for Guaranteed Replacement of Stolen Car.",
+            "Would you like GRSC cover?",
+            "This provides a replacement vehicle if yours is stolen."
+        ],
+        options: ["Yes - Add GRSC", "No Thanks", "Tell me more"],
+        next: { "Yes - Add GRSC": 17, "No Thanks": 18, "Tell me more": 17 }
+    },
+    {
+        id: 17,
+        question: "Q. GHC (Guaranteed Hire Car) request - Would you like to add Guaranteed Hire Car?",
+        phrases: [
+            "We can offer Guaranteed Hire Car cover.",
+            "Would you like a hire car guarantee?",
+            "This ensures a replacement vehicle while yours is being repaired."
+        ],
+        options: ["Yes - Add GHC", "No Thanks"],
+        next: { "Yes - Add GHC": 19, "No Thanks": 19 }
+    },
+    {
+        id: 18,
+        question: "Q. GHC inclusion - Guaranteed Hire Car is included with comprehensive cover. Would you like to keep it?",
+        phrases: [
+            "GHC is already included in your comprehensive policy.",
+            "Hire car cover is part of your package - keep it?",
+            "This is included at no extra cost."
+        ],
+        options: ["Yes - Keep GHC", "No - Remove GHC"],
+        next: { "Yes - Keep GHC": 19, "No - Remove GHC": 19 }
+    },
+    {
+        id: 19,
+        question: "Q. Comp offer - Based on your profile, we can offer competitive rates. Proceed with quote?",
+        phrases: [
+            "I have a competitive quote ready for you.",
+            "Let me calculate your premium.",
+            "I can provide your quote now."
+        ],
+        options: ["Yes - Get Quote", "No - Review Options"],
+        next: { "Yes - Get Quote": 21, "No - Review Options": 20 }
+    },
+    {
+        id: 20,
+        question: "Review details - Would you like to review all the details before proceeding?",
+        phrases: [
+            "Let's review everything we've discussed.",
+            "I'll summarize the details for you.",
+            "Let me confirm all the information."
+        ],
+        options: ["Review Complete - Proceed", "Make Changes", "Start Over"],
+        next: { "Review Complete - Proceed": 21, "Make Changes": 1, "Start Over": 0 }
+    },
+    {
+        id: 21,
+        question: "Q. Add GHC? - Final confirmation - Add Guaranteed Hire Car to your policy?",
+        phrases: [
+            "As a final option, would you like to add Guaranteed Hire Car?",
+            "One last add-on - Guaranteed Hire Car?",
+            "Would you like hire car cover included?"
+        ],
+        options: ["Yes - Add GHC", "No Thanks"],
+        next: { "Yes - Add GHC": 22, "No Thanks": 22 }
+    },
+    {
+        id: 22,
+        question: "Offer PRCT - Would you like to add Personal Accident Cover?",
+        phrases: [
+            "We also offer Personal Accident Cover.",
+            "Would you like cover for personal accidents?",
+            "This protects you in case of injury."
+        ],
+        options: ["Yes - Add PRCT", "No Thanks"],
+        next: { "Yes - Add PRCT": 23, "No Thanks": 23 }
+    },
+    {
+        id: 23,
+        question: "Q. Already GHC added? - You've already added GHC. Would you like to confirm this?",
+        phrases: [
+            "I can confirm GHC is on your policy.",
+            "Guaranteed Hire Car has been added.",
+            "Just confirming the GHC add-on."
+        ],
+        options: ["Confirm GHC", "Remove GHC"],
+        next: { "Confirm GHC": 24, "Remove GHC": 24 }
+    },
+    {
+        id: 24,
+        question: "Provide or confirm - Shall I provide a final quote or confirm the policy?",
+        phrases: [
+            "Would you like the final quote?",
+            "Shall I confirm this policy for you?",
+            "Let me finalize the details."
+        ],
+        options: ["Provide Quote", "Confirm Policy", "Review Again"],
+        next: { "Provide Quote": 25, "Confirm Policy": 26, "Review Again": 20 }
+    },
+    {
+        id: 25,
+        question: "Quote provided - Your quote is ready. Would you like to proceed with this policy?",
+        phrases: [
+            "Here's your quote based on the information provided.",
+            "Your premium has been calculated.",
+            "This is the cost for your policy."
+        ],
+        options: ["Accept Quote", "Decline", "Need Time to Think"],
+        next: { "Accept Quote": 26, "Decline": 28, "Need Time to Think": 27 }
+    },
+    {
+        id: 26,
+        question: "Policy confirmed - Your policy is now active. Is there anything else I can help with?",
+        phrases: [
+            "Your policy is all set up.",
+            "Everything is confirmed and active.",
+            "Your insurance is now in place."
+        ],
+        options: ["No, that's all", "I have a question"],
+        next: { "No, that's all": 28, "I have a question": 27 }
+    },
+    {
+        id: 27,
+        question: "Additional assistance - What else can I help you with?",
+        phrases: [
+            "What other questions do you have?",
+            "How else can I assist you?",
+            "Is there anything else you need?"
+        ],
+        options: ["Policy Documents", "Payment Options", "Contact Details", "Nothing else"],
+        next: { "Policy Documents": 28, "Payment Options": 28, "Contact Details": 28, "Nothing else": 28 }
+    },
+    {
+        id: 28,
+        question: "Call Closing - Thank you for calling. Is there anything else before we finish?",
+        phrases: [
+            "Thank you for choosing our insurance services.",
+            "I appreciate your time today.",
+            "We're here if you need us in the future."
+        ],
+        options: ["End Call"],
+        next: { "End Call": -1 }
+    },
+    {
+        id: 29,
+        question: "ID&V Failed - Unable to proceed without verification. Would you like to try again?",
+        phrases: [
+            "I'm unable to proceed without verifying your identity.",
+            "For security, I must complete ID&V before continuing.",
+            "Would you like to attempt verification again?"
+        ],
+        options: ["Try ID&V Again", "End Call"],
+        next: { "Try ID&V Again": 0, "End Call": 28 }
+    },
+    {
+        id: 30,
+        question: "Alternative database searched - We found some options. Would you like to hear them?",
+        phrases: [
+            "I found some alternative solutions.",
+            "Here are some options that might work.",
+            "Let me share what I found."
+        ],
+        options: ["Yes - Hear Options", "No Thanks"],
+        next: { "Yes - Hear Options": 14, "No Thanks": 28 }
+    }
+];
+const articles = [
+    {
+        id: 1,
+        title: "Resetting Customer Password",
+        category: "Account Management",
+        steps: [
+            "Navigate to Settings → Security → Reset Password",
+            "Click on 'Forgot Password' link",
+            "Enter customer's registered email address",
+            "Verify customer identity using security questions",
+            "Send password reset link to customer's email",
+            "Confirm customer has received the email"
+        ],
+        screenshot: "Password Reset Interface"
+    },
+    {
+        id: 2,
+        title: "Processing a Refund",
+        category: "Payments",
+        steps: [
+            "Navigate to Payments → Refunds → New Refund",
+            "Enter transaction ID or search by customer name",
+            "Verify transaction details and refund eligibility",
+            "Select refund amount (full or partial)",
+            "Choose refund method (original payment method or bank transfer)",
+            "Add refund reason and notes",
+            "Submit refund request for approval",
+            "Notify customer of refund processing time (3-5 business days)"
+        ],
+        screenshot: "Refund Processing Dashboard"
+    },
+    {
+        id: 3,
+        title: "Updating Customer Contact Information",
+        category: "Account Management",
+        steps: [
+            "Verify customer identity using ID&V process",
+            "Navigate to Customer Profile → Contact Details",
+            "Click 'Edit' on the contact information section",
+            "Update email, phone number, or address as requested",
+            "Verify new contact details with customer",
+            "Click 'Save Changes'",
+            "Send confirmation to new email/phone if changed"
+        ],
+        screenshot: "Customer Profile Edit Screen"
+    },
+    {
+        id: 4,
+        title: "Handling Login Issues",
+        category: "Technical Support",
+        steps: [
+            "Ask customer to describe the specific login problem",
+            "Check if account is locked or suspended",
+            "Verify username/email is correct",
+            "Attempt password reset if needed",
+            "Check for browser cache/cookie issues",
+            "Test login from different browser or device",
+            "Escalate to technical team if issue persists"
+        ],
+        screenshot: "Account Status Dashboard"
+    },
+    {
+        id: 5,
+        title: "Creating a New Support Ticket",
+        category: "Support",
+        steps: [
+            "Navigate to Support → New Ticket",
+            "Enter customer details (name, account number, contact)",
+            "Select issue category and priority level",
+            "Provide detailed description of the issue",
+            "Attach relevant screenshots or documents",
+            "Assign to appropriate department",
+            "Send ticket confirmation to customer with ticket ID"
+        ],
+        screenshot: "Support Ticket Creation Form"
+    },
+    {
+        id: 6,
+        title: "Verifying Customer Identity (ID&V)",
+        category: "Security",
+        steps: [
+            "Greet customer and explain ID&V is for security",
+            "Ask for full name as registered",
+            "Request date of birth",
+            "Ask for postcode of registered address",
+            "Verify last 4 digits of account number or card",
+            "Ask security question (mother's maiden name, first school, etc.)",
+            "Mark ID&V as passed or failed in system",
+            "Proceed with inquiry only if ID&V passed"
+        ],
+        screenshot: "ID&V Verification Screen"
+    }
+];
 
-(function(){
-  // --- Basic navigation wiring (unchanged) ---
-  const login = document.getElementById('login');
-  const dashboard = document.getElementById('dashboard');
-  const about = document.getElementById('about');
-  const resetBtn = document.getElementById('resetBtn');
-  const aboutToggle = document.getElementById('aboutToggle');
-  const openAbout = document.getElementById('openAbout');
-  const aboutBack = document.getElementById('aboutBack');
+const complaintsTree = [
+    {
+        id: 0,
+        question: "Has the customer expressed dissatisfaction with our service or product?",
+        options: ["Yes", "No"],
+        next: { Yes: 1, No: -2 }
+    },
+    {
+        id: 1,
+        question: "Has the customer explicitly asked to make a formal complaint?",
+        options: ["Yes", "No"],
+        next: { Yes: -1, No: 2 }
+    },
+    {
+        id: 2,
+        question: "Have you attempted to resolve the issue during this call?",
+        options: ["Yes", "No"],
+        next: { Yes: 3, No: -1 }
+    },
+    {
+        id: 3,
+        question: "Is the customer satisfied with the resolution provided?",
+        options: ["Yes", "No"],
+        next: { Yes: -2, No: 4 }
+    },
+    {
+        id: 4,
+        question: "Does the issue involve financial loss, service failure, or breach of terms?",
+        options: ["Yes", "No"],
+        next: { Yes: -1, No: 5 }
+    },
+    {
+        id: 5,
+        question: "Has the customer indicated they want to escalate the matter?",
+        options: ["Yes", "No"],
+        next: { Yes: -1, No: -2 }
+    }
+];
 
-  const screens = Array.from(document.querySelectorAll('.screen'));
-  const moduleCards = Array.from(document.querySelectorAll('.module-card'));
-  const navLinks = Array.from(document.querySelectorAll('.nav-link'));
-  const backBtns = Array.from(document.querySelectorAll('.backBtn'));
+const vcTree = [
+    {
+        id: 0,
+        question: "Does the customer have difficulty communicating or understanding?",
+        options: ["Yes", "No"],
+        next: { Yes: -1, No: 1 }
+    },
+    {
+        id: 1,
+        question: "Has the customer mentioned any health conditions affecting their decision-making?",
+        options: ["Yes", "No"],
+        next: { Yes: -1, No: 2 }
+    },
+    {
+        id: 2,
+        question: "Is the customer experiencing financial difficulties or hardship?",
+        options: ["Yes", "No"],
+        next: { Yes: -1, No: 3 }
+    },
+    {
+        id: 3,
+        question: "Does the customer appear to be under pressure or duress from a third party?",
+        options: ["Yes", "No"],
+        next: { Yes: -1, No: 4 }
+    },
+    {
+        id: 4,
+        question: "Has the customer mentioned recent bereavement or significant life changes?",
+        options: ["Yes", "No"],
+        next: { Yes: -1, No: 5 }
+    },
+    {
+        id: 5,
+        question: "Does the customer show signs of age-related vulnerability (elderly)?",
+        options: ["Yes", "No"],
+        next: { Yes: -1, No: 6 }
+    },
+    {
+        id: 6,
+        question: "Is the customer showing signs of mental health concerns or distress?",
+        options: ["Yes", "No"],
+        next: { Yes: -1, No: -2 }
+    }
+];
 
-  const loginBtn = document.getElementById('loginBtn');
-  const demoBtn = document.getElementById('demoBtn');
+let currentModule = 'dashboard';
+let flowState = {
+    currentStep: 0,
+    history: [],
+    answers: {}
+};
+let complaintsState = {
+    currentStep: 0,
+    answers: {}
+};
+let vcState = {
+    currentStep: 0,
+    answers: {}
+};
 
-  function showScreen(id){
-    screens.forEach(s => {
-      if(s.id === id){
-        s.hidden = false;
-        s.classList.add('active');
-        const anim = s.querySelector('.animate-up');
-        if(anim){ anim.style.animation = 'none'; void anim.offsetWidth; anim.style.animation = ''; }
-      } else {
-        s.hidden = true;
-        s.classList.remove('active');
-      }
+document.addEventListener('DOMContentLoaded', () => {
+    initNavigation();
+    initGuidedFlow();
+    initKnowledgePortal();
+    initComplaintsAssistant();
+    initVCAssistant();
+});
+
+function initNavigation() {
+    const cards = document.querySelectorAll('.card');
+    const resetBtn = document.getElementById('resetBtn');
+
+    cards.forEach(card => {
+        card.addEventListener('click', () => {
+            const module = card.getAttribute('data-module');
+            showModule(module);
+        });
     });
-    window.scrollTo({top:0, behavior:'smooth'});
-  }
 
-  function goToDashboard(){ showScreen('dashboard'); }
-
-  loginBtn.addEventListener('click', goToDashboard);
-  demoBtn.addEventListener('click', goToDashboard);
-
-  moduleCards.forEach(card => {
-    const target = card.dataset.target;
-    card.addEventListener('click', () => showScreen(target));
-    card.addEventListener('keydown', (e) => {
-      if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); showScreen(target); }
+    resetBtn.addEventListener('click', () => {
+        showModule('dashboard');
     });
-  });
+}
 
-  navLinks.forEach(link => {
-    const t = link.dataset.target;
-    link.addEventListener('click', () => showScreen(t));
-  });
+function showModule(moduleName) {
+    const sections = document.querySelectorAll('.module-section');
+    sections.forEach(section => {
+        section.classList.remove('active');
+    });
 
-  backBtns.forEach(b => b.addEventListener('click', () => showScreen('dashboard')));
+    const targetSection = document.getElementById(moduleName);
+    if (targetSection) {
+        targetSection.classList.add('active');
+    }
 
-  resetBtn.addEventListener('click', () => showScreen('dashboard'));
-  aboutToggle.addEventListener('click', () => showScreen('about'));
-  openAbout && openAbout.addEventListener('click', () => showScreen('about'));
-  aboutBack && aboutBack.addEventListener('click', () => showScreen('dashboard'));
+    const resetBtn = document.getElementById('resetBtn');
+    if (moduleName === 'dashboard') {
+        resetBtn.style.display = 'none';
+    } else {
+        resetBtn.style.display = 'block';
+    }
 
-  // --- Generic Decision Tree Engine (with router support) ---
-  // Node format:
-  // { id, text, input?, inputLabel?, inputNoteKey?, options: [{label,next,note,setCallType}], next?, router?, routes: {...}, end? }
-  function renderDecisionTree(rootEl, tree, opts = {}) {
-    let state = {
-      currentId: tree.start,
-      history: [], // {nodeId, choiceIndex, inputValue}
-      notes: [],
-      callType: null
+    currentModule = moduleName;
+}
+
+function initGuidedFlow() {
+    const nextBtn = document.getElementById('flowNextBtn');
+    const prevBtn = document.getElementById('flowPrevBtn');
+    const restartBtn = document.getElementById('flowRestartBtn');
+    const copyBtn = document.getElementById('flowCopyBtn');
+
+    nextBtn.addEventListener('click', handleFlowNext);
+    prevBtn.addEventListener('click', handleFlowPrevious);
+    restartBtn.addEventListener('click', resetGuidedFlow);
+    copyBtn.addEventListener('click', copyFlowNotes);
+
+    renderFlowStep();
+}
+
+function renderFlowStep() {
+    const step = guidedFlowSteps[flowState.currentStep];
+    const questionEl = document.getElementById('flowQuestion');
+    const phrasesEl = document.getElementById('flowPhrases');
+    const optionsEl = document.getElementById('flowOptions');
+    const prevBtn = document.getElementById('flowPrevBtn');
+    const nextBtn = document.getElementById('flowNextBtn');
+    const notesEl = document.getElementById('flowNotes');
+    const stepContainer = document.getElementById('flowStep');
+
+    questionEl.textContent = step.question;
+
+    phrasesEl.innerHTML = '<h4 style="color: #FF6600; margin-bottom: 12px; font-size: 1.1rem; font-weight: 600;">Suggested Phrases:</h4>';
+    step.phrases.forEach(phrase => {
+        const phraseDiv = document.createElement('div');
+        phraseDiv.className = 'phrase-item';
+        phraseDiv.textContent = phrase;
+        phrasesEl.appendChild(phraseDiv);
+    });
+
+    optionsEl.innerHTML = '';
+    step.options.forEach(option => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn';
+        btn.textContent = option;
+        
+        if (flowState.answers[step.id] === option) {
+            btn.classList.add('selected');
+        }
+
+        btn.addEventListener('click', () => {
+            const buttons = optionsEl.querySelectorAll('.option-btn');
+            buttons.forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            flowState.answers[step.id] = option;
+            nextBtn.disabled = false;
+        });
+
+        optionsEl.appendChild(btn);
+    });
+
+    prevBtn.disabled = flowState.history.length === 0;
+    nextBtn.disabled = !flowState.answers[step.id];
+}
+
+function handleFlowNext() {
+    const step = guidedFlowSteps[flowState.currentStep];
+    const selectedAnswer = flowState.answers[step.id];
+
+    if (!selectedAnswer) return;
+
+    const nextStepId = step.next[selectedAnswer];
+
+    if (nextStepId === -1) {
+        showFlowNotes();
+        return;
+    }
+
+    flowState.history.push(flowState.currentStep);
+    flowState.currentStep = nextStepId;
+    renderFlowStep();
+}
+
+function handleFlowPrevious() {
+    if (flowState.history.length > 0) {
+        flowState.currentStep = flowState.history.pop();
+        renderFlowStep();
+    }
+}
+
+function showFlowNotes() {
+    const stepContainer = document.getElementById('flowStep');
+    const controls = document.querySelector('.flow-controls');
+    const notesEl = document.getElementById('flowNotes');
+    const notesContent = document.getElementById('flowNotesContent');
+
+    stepContainer.style.display = 'none';
+    controls.style.display = 'none';
+    notesEl.style.display = 'block';
+
+    const timestamp = new Date().toLocaleString('en-GB', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+
+    let notes = '╔════════════════════════════════════════════════════════════╗\n';
+    notes += '║              INSURANCE POLICY CALL NOTES                   ║\n';
+    notes += '╚════════════════════════════════════════════════════════════╝\n\n';
+    notes += `Date & Time: ${timestamp}\n\n`;
+
+    const idvStatus = flowState.answers[0] || 'Not Verified';
+    notes += '┌─── IDENTITY VERIFICATION ───────────────────────────────────\n';
+    notes += `│ Status: ${idvStatus}\n`;
+    notes += '└─────────────────────────────────────────────────────────────\n\n';
+
+    let vehicleDetails = [];
+    let policyChanges = [];
+    let coverDetails = [];
+    let addOns = [];
+    let quoteStatus = [];
+
+    guidedFlowSteps.forEach(step => {
+        const answer = flowState.answers[step.id];
+        if (answer && step.id > 0) {
+            if (step.id >= 1 && step.id <= 13) {
+                vehicleDetails.push({
+                    question: step.question,
+                    answer: answer
+                });
+            }
+            if (step.id >= 14 && step.id <= 15) {
+                coverDetails.push({
+                    question: step.question,
+                    answer: answer
+                });
+            }
+            if (step.id >= 16 && step.id <= 23) {
+                addOns.push({
+                    question: step.question,
+                    answer: answer
+                });
+            }
+            if (step.id >= 24 && step.id <= 28) {
+                quoteStatus.push({
+                    question: step.question,
+                    answer: answer
+                });
+            }
+        }
+    });
+
+    if (vehicleDetails.length > 0) {
+        notes += '┌─── POLICY CHANGE DETAILS ───────────────────────────────────\n';
+        vehicleDetails.forEach(detail => {
+            const cleanQuestion = detail.question.replace(/^.*? - /, '');
+            notes += `│ ${cleanQuestion}\n`;
+            notes += `│   → ${detail.answer}\n`;
+        });
+        notes += '└─────────────────────────────────────────────────────────────\n\n';
+    }
+
+    if (coverDetails.length > 0) {
+        notes += '┌─── COVER TYPE SELECTION ────────────────────────────────────\n';
+        coverDetails.forEach(detail => {
+            const cleanQuestion = detail.question.replace(/^.*? - /, '');
+            notes += `│ ${cleanQuestion}\n`;
+            notes += `│   → ${detail.answer}\n`;
+        });
+        notes += '└─────────────────────────────────────────────────────────────\n\n';
+    }
+
+    if (addOns.length > 0) {
+        notes += '┌─── ADD-ONS SELECTED ────────────────────────────────────────\n';
+        addOns.forEach(detail => {
+            const cleanQuestion = detail.question.replace(/^.*? - /, '').replace(/^Q\. /, '');
+            notes += `│ ${cleanQuestion}\n`;
+            notes += `│   → ${detail.answer}\n`;
+        });
+        notes += '└─────────────────────────────────────────────────────────────\n\n';
+    }
+
+    if (quoteStatus.length > 0) {
+        notes += '┌─── QUOTE & POLICY STATUS ───────────────────────────────────\n';
+        quoteStatus.forEach(detail => {
+            const cleanQuestion = detail.question.replace(/^.*? - /, '');
+            notes += `│ ${cleanQuestion}\n`;
+            notes += `│   → ${detail.answer}\n`;
+        });
+        notes += '└─────────────────────────────────────────────────────────────\n\n';
+    }
+
+    notes += '┌─── COMPLETE CALL TRANSCRIPT ────────────────────────────────\n';
+    let stepNumber = 1;
+    guidedFlowSteps.forEach(step => {
+        if (flowState.answers[step.id]) {
+            notes += `│\n│ Step ${stepNumber}: ${step.question}\n`;
+            notes += `│ Agent Selected: ${flowState.answers[step.id]}\n`;
+            stepNumber++;
+        }
+    });
+    notes += '└─────────────────────────────────────────────────────────────\n\n';
+
+    notes += '═══════════════════════════════════════════════════════════════\n';
+    notes += '                    END OF INSURANCE CALL NOTES\n';
+    notes += '═══════════════════════════════════════════════════════════════';
+
+    notesContent.textContent = notes;
+}
+
+function copyFlowNotes() {
+    const notesContent = document.getElementById('flowNotesContent');
+    const text = notesContent.textContent;
+
+    navigator.clipboard.writeText(text).then(() => {
+        const copyBtn = document.getElementById('flowCopyBtn');
+        const originalText = copyBtn.textContent;
+        copyBtn.textContent = 'Copied!';
+        copyBtn.style.backgroundColor = '#4CAF50';
+        
+        setTimeout(() => {
+            copyBtn.textContent = originalText;
+            copyBtn.style.backgroundColor = '';
+        }, 2000);
+    });
+}
+
+function resetGuidedFlow() {
+    flowState = {
+        currentStep: 0,
+        history: [],
+        answers: {}
     };
 
-    rootEl.innerHTML = '';
+    const stepContainer = document.getElementById('flowStep');
+    const controls = document.querySelector('.flow-controls');
+    const notesEl = document.getElementById('flowNotes');
 
-    const qEl = document.createElement('div');
-    const optionsEl = document.createElement('div');
-    const inputWrap = document.createElement('div');
-    const controls = document.createElement('div');
-    const notesEl = document.createElement('div');
+    stepContainer.style.display = 'block';
+    controls.style.display = 'flex';
+    notesEl.style.display = 'none';
 
-    qEl.className = 'flow-question';
-    optionsEl.className = 'options';
-    inputWrap.className = 'flow-input';
-    controls.className = 'flow-controls';
-    notesEl.className = 'flow-notes';
+    renderFlowStep();
+}
 
-    rootEl.appendChild(qEl);
-    rootEl.appendChild(optionsEl);
-    rootEl.appendChild(inputWrap);
-    rootEl.appendChild(controls);
-    rootEl.appendChild(notesEl);
+function initKnowledgePortal() {
+    const searchInput = document.getElementById('knowledgeSearch');
+    const container = document.getElementById('articlesContainer');
 
-    const prevBtn = document.createElement('button');
-    prevBtn.className = 'btn outline';
-    prevBtn.textContent = 'Previous';
-    prevBtn.disabled = true;
+    searchInput.addEventListener('input', (e) => {
+        const searchTerm = e.target.value.toLowerCase();
+        renderArticles(searchTerm);
+    });
 
-    const nextBtn = document.createElement('button');
-    nextBtn.className = 'btn primary';
-    nextBtn.textContent = 'Next';
-    nextBtn.disabled = true;
+    renderArticles('');
+}
 
-    const resetBtnLocal = document.createElement('button');
-    resetBtnLocal.className = 'btn ghost';
-    resetBtnLocal.textContent = 'Restart';
+function renderArticles(searchTerm = '') {
+    const container = document.getElementById('articlesContainer');
+    container.innerHTML = '';
 
-    controls.appendChild(prevBtn);
-    controls.appendChild(resetBtnLocal);
-    controls.appendChild(nextBtn);
+    const filteredArticles = articles.filter(article => {
+        return article.title.toLowerCase().includes(searchTerm) ||
+               article.category.toLowerCase().includes(searchTerm) ||
+               article.steps.some(step => step.toLowerCase().includes(searchTerm));
+    });
 
-    function nodeFor(id){ return tree.nodes[id]; }
-
-    let selectedIndex = null;
-    let inputValue = '';
-
-    function render() {
-      optionsEl.innerHTML = '';
-      inputWrap.innerHTML = '';
-      notesEl.innerHTML = '';
-
-      const node = nodeFor(state.currentId);
-      if(!node){
-        qEl.textContent = 'Unknown node';
+    if (filteredArticles.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: #666; padding: 40px;">No articles found matching your search.</p>';
         return;
-      }
+    }
 
-      // If node is router: route automatically based on state.callType
-      if(node.router){
-        const routeTarget = node.routes && (node.routes[state.callType] || node.default);
-        if(routeTarget){
-          state.currentId = routeTarget;
-          // We immediately render the routed node
-          render();
-          return;
-        } else {
-          qEl.textContent = node.text || '';
-        }
-      }
+    filteredArticles.forEach(article => {
+        const card = document.createElement('div');
+        card.className = 'article-card';
 
-      // display question text + small note of call type (if set)
-      qEl.innerHTML = '';
-      const qText = document.createElement('div');
-      qText.textContent = node.text || '';
-      qEl.appendChild(qText);
-      if(state.callType){
-        const small = document.createElement('div');
-        small.className = 'small-note';
-        small.textContent = `Call Type: ${state.callType}`;
-        qEl.appendChild(small);
-      }
+        const header = document.createElement('div');
+        header.className = 'article-header';
+        header.innerHTML = `
+            <div>
+                <h3>${article.title}</h3>
+                <p style="color: #666; font-size: 0.9rem; margin-top: 4px;">${article.category}</p>
+            </div>
+            <span class="article-toggle">+</span>
+        `;
 
-      // input
-      if(node.input){
-        const label = document.createElement('label');
-        label.textContent = node.inputLabel || 'Details';
-        const inp = node.inputType === 'textarea' ? document.createElement('textarea') : document.createElement('input');
-        inp.placeholder = node.inputPlaceholder || '';
-        // restore if available in history for this node
-        const hist = state.history.find(h => h.nodeId === node.id);
-        if(hist && hist.inputValue) inp.value = hist.inputValue;
-        inp.addEventListener('input', (e) => {
-          inputValue = e.target.value;
-          nextBtn.disabled = !inputValue.trim();
-        });
-        inputWrap.appendChild(label);
-        inputWrap.appendChild(inp);
-        inputValue = inp.value || '';
-        nextBtn.disabled = !inputValue.trim();
-      } else {
-        inputValue = '';
-      }
+        const content = document.createElement('div');
+        content.className = 'article-content';
 
-      // options
-      if(node.options && node.options.length){
-        node.options.forEach((opt, i) => {
-          const b = document.createElement('button');
-          b.className = 'option-btn';
-          b.type = 'button';
-          b.textContent = opt.label;
-          b.addEventListener('click', () => {
-            Array.from(optionsEl.children).forEach(ch => ch.classList.remove('selected'));
-            b.classList.add('selected');
-            selectedIndex = i;
-            nextBtn.disabled = false;
-          });
-          optionsEl.appendChild(b);
+        const stepsHtml = article.steps.map((step, index) => 
+            `<div class="article-step">${index + 1}. ${step}</div>`
+        ).join('');
+
+        content.innerHTML = `
+            <div class="article-steps">${stepsHtml}</div>
+            <div class="article-screenshot">Screenshot: ${article.screenshot}</div>
+        `;
+
+        header.addEventListener('click', () => {
+            const isExpanded = content.classList.contains('expanded');
+            content.classList.toggle('expanded');
+            header.querySelector('.article-toggle').textContent = isExpanded ? '+' : '−';
         });
 
-        // restore selection from history if present
-        const last = state.history.find(h => h.nodeId === node.id);
-        if(last && typeof last.choiceIndex === 'number'){
-          const buttonToSelect = optionsEl.children[last.choiceIndex];
-          if(buttonToSelect){
-            buttonToSelect.classList.add('selected');
-            selectedIndex = last.choiceIndex;
-            nextBtn.disabled = false;
-          }
-        }
-      } else {
-        nextBtn.disabled = node.input ? !inputValue.trim() : false;
-      }
+        card.appendChild(header);
+        card.appendChild(content);
+        container.appendChild(card);
+    });
+}
 
-      prevBtn.disabled = state.history.length === 0;
+function initComplaintsAssistant() {
+    const restartBtn = document.getElementById('complaintsRestartBtn');
+    restartBtn.addEventListener('click', resetComplaints);
+    renderComplaintsStep();
+}
 
-      // render notes summary
-      if(state.notes.length){
-        const h = document.createElement('div');
-        h.style.fontWeight = '700';
-        h.style.marginBottom = '8px';
-        h.textContent = 'Current Notes Preview';
-        notesEl.appendChild(h);
+function renderComplaintsStep() {
+    const step = complaintsTree[complaintsState.currentStep];
+    const questionEl = document.getElementById('complaintsQuestion');
+    const optionsEl = document.getElementById('complaintsOptions');
+    const stepContainer = document.getElementById('complaintsStep');
+    const resultContainer = document.getElementById('complaintsResult');
 
-        const ul = document.createElement('ul');
-        ul.style.margin = '0';
-        ul.style.paddingLeft = '16px';
-        state.notes.forEach(n => {
-          const li = document.createElement('li');
-          li.textContent = `${n.k}: ${n.v}`;
-          ul.appendChild(li);
+    stepContainer.style.display = 'block';
+    resultContainer.style.display = 'none';
+
+    questionEl.textContent = step.question;
+
+    optionsEl.innerHTML = '';
+    step.options.forEach(option => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn';
+        btn.textContent = option;
+
+        btn.addEventListener('click', () => {
+            complaintsState.answers[step.id] = option;
+            const nextStepId = step.next[option];
+
+            if (nextStepId === -1) {
+                showComplaintsResult(true);
+            } else if (nextStepId === -2) {
+                showComplaintsResult(false);
+            } else {
+                complaintsState.currentStep = nextStepId;
+                renderComplaintsStep();
+            }
         });
-        notesEl.appendChild(ul);
-      }
+
+        optionsEl.appendChild(btn);
+    });
+}
+
+function showComplaintsResult(shouldLog) {
+    const stepContainer = document.getElementById('complaintsStep');
+    const resultContainer = document.getElementById('complaintsResult');
+    const resultTitle = document.getElementById('complaintsResultTitle');
+    const notesEl = document.getElementById('complaintsNotes');
+
+    stepContainer.style.display = 'none';
+    resultContainer.style.display = 'block';
+
+    if (shouldLog) {
+        resultTitle.textContent = 'Log Complaint';
+        resultTitle.className = 'warning';
+    } else {
+        resultTitle.textContent = 'Do Not Log Complaint';
+        resultTitle.className = 'success';
     }
 
-    function goNext(){
-      const node = nodeFor(state.currentId);
-      let chosenOption = null;
-      if(node.options && node.options.length && typeof selectedIndex === 'number'){
-        chosenOption = node.options[selectedIndex];
-      }
-
-      const histEntry = { nodeId: node.id, choiceIndex: typeof selectedIndex === 'number' ? selectedIndex : null, inputValue: inputValue || null };
-      state.history.push(histEntry);
-
-      // commit notes
-      if(chosenOption && chosenOption.note){
-        state.notes.push({ k: chosenOption.note.k, v: chosenOption.note.v });
-      }
-      if(chosenOption && chosenOption.setCallType){
-        state.callType = chosenOption.setCallType;
-        // also add note indicating call type
-        state.notes.push({ k: 'Call type', v: state.callType });
-      }
-      if(node.input && node.inputNoteKey && inputValue){
-        state.notes.push({ k: node.inputNoteKey, v: inputValue });
-      }
-
-      // determine next
-      let nextId = null;
-      if(chosenOption && chosenOption.next) nextId = chosenOption.next;
-      else if(node.next) nextId = node.next;
-      else nextId = 'end';
-
-      selectedIndex = null;
-      inputValue = '';
-
-      // handle 'end' special-case
-      if(nextId === 'end'){
-        renderEnd();
-      } else {
-        state.currentId = nextId;
-        render();
-      }
-    }
-
-    function goPrev(){
-      if(state.history.length === 0) return;
-      state.history.pop();
-      // reconstruct notes from history
-      state.notes = [];
-      state.callType = null;
-      for(const h of state.history){
-        const nNode = nodeFor(h.nodeId);
-        if(nNode){
-          if(typeof h.choiceIndex === 'number' && nNode.options && nNode.options[h.choiceIndex] && nNode.options[h.choiceIndex].note){
-            state.notes.push({ k: nNode.options[h.choiceIndex].note.k, v: nNode.options[h.choiceIndex].note.v });
-          }
-          if(nNode.options && typeof h.choiceIndex === 'number' && nNode.options[h.choiceIndex] && nNode.options[h.choiceIndex].setCallType){
-            state.callType = nNode.options[h.choiceIndex].setCallType;
-            state.notes.push({ k: 'Call type', v: state.callType });
-          }
-          if(nNode.input && nNode.inputNoteKey && h.inputValue){
-            state.notes.push({ k: nNode.inputNoteKey, v: h.inputValue });
-          }
+    let notesHtml = '<h4 style="color: #FF6600; margin-bottom: 12px; font-weight: 600;">Assessment Summary:</h4>';
+    complaintsTree.forEach(step => {
+        if (complaintsState.answers[step.id]) {
+            notesHtml += `<p><strong>Q:</strong> ${step.question}</p>`;
+            notesHtml += `<p><strong>A:</strong> ${complaintsState.answers[step.id]}</p>`;
+            notesHtml += '<hr style="margin: 12px 0; border: none; border-top: 1px solid #E0E0E0;">';
         }
-      }
-      // set current to last history or start
-      if(state.history.length){
-        state.currentId = state.history[state.history.length-1].nodeId;
-      } else {
-        state.currentId = tree.start;
-      }
-      render();
+    });
+
+    notesEl.innerHTML = notesHtml;
+}
+
+function resetComplaints() {
+    complaintsState = {
+        currentStep: 0,
+        answers: {}
+    };
+    renderComplaintsStep();
+}
+
+function initVCAssistant() {
+    const restartBtn = document.getElementById('vcRestartBtn');
+    restartBtn.addEventListener('click', resetVC);
+    renderVCStep();
+}
+
+function renderVCStep() {
+    const step = vcTree[vcState.currentStep];
+    const questionEl = document.getElementById('vcQuestion');
+    const optionsEl = document.getElementById('vcOptions');
+    const stepContainer = document.getElementById('vcStep');
+    const resultContainer = document.getElementById('vcResult');
+
+    stepContainer.style.display = 'block';
+    resultContainer.style.display = 'none';
+
+    questionEl.textContent = step.question;
+
+    optionsEl.innerHTML = '';
+    step.options.forEach(option => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn';
+        btn.textContent = option;
+
+        btn.addEventListener('click', () => {
+            vcState.answers[step.id] = option;
+            const nextStepId = step.next[option];
+
+            if (nextStepId === -1) {
+                showVCResult(true);
+            } else if (nextStepId === -2) {
+                showVCResult(false);
+            } else {
+                vcState.currentStep = nextStepId;
+                renderVCStep();
+            }
+        });
+
+        optionsEl.appendChild(btn);
+    });
+}
+
+function showVCResult(isVulnerable) {
+    const stepContainer = document.getElementById('vcStep');
+    const resultContainer = document.getElementById('vcResult');
+    const resultTitle = document.getElementById('vcResultTitle');
+    const notesEl = document.getElementById('vcNotes');
+
+    stepContainer.style.display = 'none';
+    resultContainer.style.display = 'block';
+
+    if (isVulnerable) {
+        resultTitle.textContent = 'Customer is Vulnerable';
+        resultTitle.className = 'warning';
+    } else {
+        resultTitle.textContent = 'Customer is Not Vulnerable';
+        resultTitle.className = 'success';
     }
 
-    function renderEnd(){
-      rootEl.innerHTML = '';
-      const endWrap = document.createElement('div');
-      endWrap.className = 'flow-end';
-
-      const title = document.createElement('h3');
-      title.textContent = tree.endTitle || 'Flow Complete';
-      endWrap.appendChild(title);
-
-      const summary = document.createElement('div');
-      summary.style.marginTop = '8px';
-
-      const ul = document.createElement('ul');
-      ul.style.paddingLeft = '16px';
-      ul.style.marginTop = '8px';
-      state.notes.forEach(n => {
-        const li = document.createElement('li');
-        li.textContent = `${n.k}: ${n.v}`;
-        ul.appendChild(li);
-      });
-      summary.appendChild(ul);
-      endWrap.appendChild(summary);
-
-      const copyBtn = document.createElement('button');
-      copyBtn.className = 'btn primary';
-      copyBtn.textContent = 'Copy Notes';
-      copyBtn.addEventListener('click', () => {
-        const text = `Call Notes:\n` + state.notes.map(n => `- ${n.k}: ${n.v}`).join('\n');
-        if(navigator.clipboard && navigator.clipboard.writeText){
-          navigator.clipboard.writeText(text).then(() => {
-            copyBtn.textContent = 'Copied!';
-            setTimeout(()=> copyBtn.textContent = 'Copy Notes', 1200);
-          });
-        } else {
-          const ta = document.createElement('textarea');
-          ta.value = text; document.body.appendChild(ta); ta.select();
-          try { document.execCommand('copy'); copyBtn.textContent = 'Copied!'; setTimeout(()=> copyBtn.textContent = 'Copy Notes', 1200); } catch(e){}
-          ta.remove();
+    let notesHtml = '<h4 style="color: #FF6600; margin-bottom: 12px; font-weight: 600;">Vulnerability Assessment:</h4>';
+    vcTree.forEach(step => {
+        if (vcState.answers[step.id]) {
+            notesHtml += `<p><strong>Q:</strong> ${step.question}</p>`;
+            notesHtml += `<p><strong>A:</strong> ${vcState.answers[step.id]}</p>`;
+            notesHtml += '<hr style="margin: 12px 0; border: none; border-top: 1px solid #E0E0E0;">';
         }
-      });
-
-      const retBtn = document.createElement('button');
-      retBtn.className = 'btn outline';
-      retBtn.textContent = 'Return to Dashboard';
-      retBtn.addEventListener('click', () => window.showScreen('dashboard'));
-
-      const restartBtn = document.createElement('button');
-      restartBtn.className = 'btn ghost';
-      restartBtn.textContent = 'Restart Flow';
-      restartBtn.addEventListener('click', () => {
-        state = { currentId: tree.start, history: [], notes: [], callType: null };
-        rootEl.innerHTML = '';
-        rootEl.appendChild(qEl);
-        rootEl.appendChild(optionsEl);
-        rootEl.appendChild(inputWrap);
-        rootEl.appendChild(controls);
-        rootEl.appendChild(notesEl);
-        render();
-      });
-
-      const controlWrap = document.createElement('div');
-      controlWrap.style.display = 'flex';
-      controlWrap.style.gap = '8px';
-      controlWrap.style.marginTop = '12px';
-      controlWrap.appendChild(copyBtn);
-      controlWrap.appendChild(restartBtn);
-      controlWrap.appendChild(retBtn);
-
-      endWrap.appendChild(controlWrap);
-      rootEl.appendChild(endWrap);
-    }
-
-    nextBtn.addEventListener('click', () => {
-      const node = nodeFor(state.currentId);
-      if(node.options && node.options.length && typeof selectedIndex !== 'number') return;
-      if(node.input && !inputValue) return;
-      goNext();
     });
 
-    prevBtn.addEventListener('click', goPrev);
-    resetBtnLocal.addEventListener('click', () => {
-      state = { currentId: tree.start, history: [], notes: [], callType: null };
-      selectedIndex = null; inputValue = '';
-      render();
-    });
-
-    render();
-  }
-
-  // --- Guided Flow Tree (expanded with call-type routing) ---
-  const guidedTree = {
-    start: 'call_type',
-    endTitle: 'Guided Flow Complete',
-    nodes: {
-      call_type: {
-        id: 'call_type',
-        text: 'Select Call Type',
-        options: [
-          { label: 'Billing', next: 'idv_check', setCallType: 'Billing', note: { k: 'Call type', v: 'Billing' } },
-          { label: 'Technical Support', next: 'idv_check', setCallType: 'Technical Support', note: { k: 'Call type', v: 'Technical Support' } },
-          { label: 'Account Update', next: 'idv_check', setCallType: 'Account Update', note: { k: 'Call type', v: 'Account Update' } },
-          { label: 'General Inquiry', next: 'idv_check', setCallType: 'General Inquiry', note: { k: 'Call type', v: 'General Inquiry' } }
-        ]
-      },
-
-      // ID&V step (common)
-      idv_check: {
-        id: 'idv_check',
-        text: 'Has ID&V been passed?',
-        options: [
-          { label: 'Yes', next: 'post_idv_router', note: { k: 'ID&V passed', v: 'Yes' } },
-          { label: 'No', next: 'perform_idv', note: { k: 'ID&V passed', v: 'No' } }
-        ]
-      },
-      perform_idv: {
-        id: 'perform_idv',
-        text: 'Please perform ID&V now. After performing ID&V, has it passed?',
-        options: [
-          { label: 'Now Passed', next: 'post_idv_router', note: { k: 'ID&V performed', v: 'Now Passed' } },
-          { label: 'Still Not Passed', next: 'end', note: { k: 'ID&V performed', v: 'Failed' } }
-        ]
-      },
-
-      // Router node: routes to call-type-specific first step after ID&V
-      post_idv_router: {
-        id: 'post_idv_router',
-        router: true,
-        // routes keyed by call type values used in call_type options
-        routes: {
-          'Billing': 'billing_issue',
-          'Technical Support': 'tech_troubleshoot_start',
-          'Account Update': 'account_update_start',
-          'General Inquiry': 'general_flow_start'
-        },
-        default: 'general_flow_start'
-      },
-
-      // Billing flow
-      billing_issue: {
-        id: 'billing_issue',
-        text: 'Is the issue related to an incorrect charge or missing credit?',
-        options: [
-          { label: 'Incorrect charge', next: 'billing_amount', note: { k: 'Billing issue type', v: 'Incorrect charge' } },
-          { label: 'Missing credit', next: 'billing_amount', note: { k: 'Billing issue type', v: 'Missing credit' } },
-          { label: 'Other', next: 'billing_description', note: { k: 'Billing issue type', v: 'Other' } }
-        ]
-      },
-      billing_amount: {
-        id: 'billing_amount',
-        text: 'Confirm the charged amount with the customer. Enter the amount if provided:',
-        input: true,
-        inputLabel: 'Amount (e.g., $xx.xx)',
-        inputPlaceholder: 'Enter amount (optional)',
-        inputNoteKey: 'Reported amount',
-        next: 'billing_resolution'
-      },
-      billing_description: {
-        id: 'billing_description',
-        text: 'Describe the billing problem briefly:',
-        input: true,
-        inputLabel: 'Description',
-        inputPlaceholder: 'Customer describes the issue',
-        inputNoteKey: 'Billing description',
-        next: 'billing_resolution'
-      },
-      billing_resolution: {
-        id: 'billing_resolution',
-        text: 'Suggested resolution: Offer refund/adjustment or escalate. Was a resolution agreed?',
-        options: [
-          { label: 'Agreed refund/adjustment', next: 'end', note: { k: 'Billing resolution', v: 'Agreed' } },
-          { label: 'Escalate', next: 'end', note: { k: 'Billing resolution', v: 'Escalated' } }
-        ]
-      },
-
-      // Technical support flow
-      tech_troubleshoot_start: {
-        id: 'tech_troubleshoot_start',
-        text: 'Is the issue related to connectivity or device/app?',
-        options: [
-          { label: 'Connectivity', next: 'tech_connectivity', note: { k: 'Tech issue area', v: 'Connectivity' } },
-          { label: 'Device/App', next: 'tech_device', note: { k: 'Tech issue area', v: 'Device/App' } },
-          { label: 'Other', next: 'tech_other', note: { k: 'Tech issue area', v: 'Other' } }
-        ]
-      },
-      tech_connectivity: {
-        id: 'tech_connectivity',
-        text: 'Ask customer to restart the device and confirm if issue persists. Did restart resolve it?',
-        options: [
-          { label: 'Resolved', next: 'end', note: { k: 'Tech troubleshooting', v: 'Restart resolved' } },
-          { label: 'Not resolved', next: 'tech_escalate', note: { k: 'Tech troubleshooting', v: 'Not resolved' } }
-        ]
-      },
-      tech_device: {
-        id: 'tech_device',
-        text: 'Collect device model and OS/version:',
-        input: true,
-        inputLabel: 'Device model / OS',
-        inputPlaceholder: 'e.g., iPhone 12 - iOS 16',
-        inputNoteKey: 'Device info',
-        next: 'tech_escalate'
-      },
-      tech_other: {
-        id: 'tech_other',
-        text: 'Briefly describe the technical issue:',
-        input: true,
-        inputLabel: 'Issue description',
-        inputPlaceholder: 'Customer description',
-        inputNoteKey: 'Tech issue description',
-        next: 'tech_escalate'
-      },
-      tech_escalate: {
-        id: 'tech_escalate',
-        text: 'Recommendation: Escalate to Tier 2. Was issue escalated?',
-        options: [
-          { label: 'Yes, escalated', next: 'end', note: { k: 'Tech escalation', v: 'Yes' } },
-          { label: 'No, provided workaround', next: 'end', note: { k: 'Tech escalation', v: 'No - workaround' } }
-        ]
-      },
-
-      // Account update flow
-      account_update_start: {
-        id: 'account_update_start',
-        text: 'Is the customer requesting personal details update or service change?',
-        options: [
-          { label: 'Personal details', next: 'account_update_details', note: { k: 'Account update type', v: 'Personal details' } },
-          { label: 'Service change', next: 'account_update_service', note: { k: 'Account update type', v: 'Service change' } }
-        ]
-      },
-      account_update_details: {
-        id: 'account_update_details',
-        text: 'Update details: collect field to update (e.g., address, phone). Enter summary:',
-        input: true,
-        inputLabel: 'Update summary',
-        inputPlaceholder: 'e.g., Update phone number to ...',
-        inputNoteKey: 'Account update summary',
-        next: 'account_update_confirm'
-      },
-      account_update_service: {
-        id: 'account_update_service',
-        text: 'Service change: record requested change and confirm service impact:',
-        input: true,
-        inputLabel: 'Service change summary',
-        inputPlaceholder: 'e.g., Upgrade plan to ...',
-        inputNoteKey: 'Service change summary',
-        next: 'account_update_confirm'
-      },
-      account_update_confirm: {
-        id: 'account_update_confirm',
-        text: 'Was the change applied successfully?',
-        options: [
-          { label: 'Yes', next: 'end', note: { k: 'Account update applied', v: 'Yes' } },
-          { label: 'No', next: 'end', note: { k: 'Account update applied', v: 'No' } }
-        ]
-      },
-
-      // General inquiry flow
-      general_flow_start: {
-        id: 'general_flow_start',
-        text: 'What is the main reason for the call? Select one:',
-        options: [
-          { label: 'Product info', next: 'general_info', note: { k: 'General reason', v: 'Product info' } },
-          { label: 'Service hours', next: 'general_info', note: { k: 'General reason', v: 'Service hours' } },
-          { label: 'Other', next: 'general_description', note: { k: 'General reason', v: 'Other' } }
-        ]
-      },
-      general_info: {
-        id: 'general_info',
-        text: 'Provide the information requested and confirm customer understanding. Was the customer satisfied?',
-        options: [
-          { label: 'Satisfied', next: 'end', note: { k: 'General outcome', v: 'Satisfied' } },
-          { label: 'Needs follow-up', next: 'general_followup', note: { k: 'General outcome', v: 'Follow-up' } }
-        ]
-      },
-      general_description: {
-        id: 'general_description',
-        text: 'Please capture a short note about the request:',
-        input: true,
-        inputLabel: 'Request summary',
-        inputPlaceholder: 'Enter summary',
-        inputNoteKey: 'Request summary',
-        next: 'general_followup'
-      },
-      general_followup: {
-        id: 'general_followup',
-        text: 'Is follow-up required?',
-        options: [
-          { label: 'Yes', next: 'end', note: { k: 'Follow-up required', v: 'Yes' } },
-          { label: 'No', next: 'end', note: { k: 'Follow-up required', v: 'No' } }
-        ]
-      }
+    if (isVulnerable) {
+        notesHtml += '<p style="color: #D32F2F; font-weight: 600; margin-top: 16px;">Action Required: Flag account for vulnerable customer support and follow appropriate procedures.</p>';
     }
-  };
 
-  // --- Complaints Assistant Tree (unchanged from prior) ---
-  const complaintsTree = {
-    start: 'c_start',
-    endTitle: 'Complaints Assistant Result',
-    nodes: {
-      c_start: {
-        id: 'c_start',
-        text: 'Is the customer expressing dissatisfaction about a product or service?',
-        options: [
-          { label: 'Yes', next: 'c_severity', note: { k: 'Complaint expressed', v: 'Yes' } },
-          { label: 'No', next: 'c_no_log', note: { k: 'Complaint expressed', v: 'No' } }
-        ]
-      },
-      c_severity: {
-        id: 'c_severity',
-        text: 'Is the issue high severity (safety, legal, significant loss)?',
-        options: [
-          { label: 'High', next: 'c_log', note: { k: 'Severity', v: 'High' } },
-          { label: 'Medium', next: 'c_log', note: { k: 'Severity', v: 'Medium' } },
-          { label: 'Low', next: 'c_maybe_log', note: { k: 'Severity', v: 'Low' } }
-        ]
-      },
-      c_maybe_log: {
-        id: 'c_maybe_log',
-        text: 'Low severity — recommended: Monitor and advise. Do you want to log anyway?',
-        options: [
-          { label: 'Log Complaint', next: 'c_log', note: { k: 'Agent chose to log', v: 'Yes' } },
-          { label: 'Do Not Log', next: 'c_no_log', note: { k: 'Agent chose to log', v: 'No' } }
-        ]
-      },
-      c_log: {
-        id: 'c_log',
-        text: 'Log complaint: enter a short summary',
-        input: true,
-        inputLabel: 'Complaint summary',
-        inputPlaceholder: 'Enter summary to log',
-        inputNoteKey: 'Logged complaint summary',
-        next: 'end'
-      },
-      c_no_log: {
-        id: 'c_no_log',
-        text: 'Recommendation: Do Not Log Complaint',
-        next: 'end'
-      }
-    }
-  };
+    notesEl.innerHTML = notesHtml;
+}
 
-  // --- VC Assistant Tree (unchanged) ---
-  const vcTree = {
-    start: 'v_start',
-    endTitle: 'VC Assistant Result',
-    nodes: {
-      v_start: {
-        id: 'v_start',
-        text: 'Does the customer indicate any vulnerabilities (health, financial hardship, language barriers)?',
-        options: [
-          { label: 'Yes', next: 'v_detail', note: { k: 'Vulnerability flag', v: 'Yes' } },
-          { label: 'No', next: 'v_no', note: { k: 'Vulnerability flag', v: 'No' } }
-        ]
-      },
-      v_detail: {
-        id: 'v_detail',
-        text: 'Select the primary vulnerability observed',
-        options: [
-          { label: 'Health', next: 'v_support', note: { k: 'Vulnerability type', v: 'Health' } },
-          { label: 'Financial', next: 'v_support', note: { k: 'Vulnerability type', v: 'Financial' } },
-          { label: 'Language', next: 'v_support', note: { k: 'Vulnerability type', v: 'Language' } }
-        ]
-      },
-      v_support: {
-        id: 'v_support',
-        text: 'Recommended support: Offer tailored support or escalate. Did you escalate?',
-        options: [
-          { label: 'Escalated', next: 'end', note: { k: 'Escalated', v: 'Yes' } },
-          { label: 'Not Escalated', next: 'end', note: { k: 'Escalated', v: 'No' } }
-        ]
-      },
-      v_no: {
-        id: 'v_no',
-        text: 'Recommendation: Customer is not vulnerable',
-        next: 'end'
-      }
-    }
-  };
-
-  // Initialize flows on module show
-  const guidedRoot = document.getElementById('guidedFlowRoot');
-  const complaintsRoot = document.getElementById('complaintsFlowRoot');
-  const vcRoot = document.getElementById('vcFlowRoot');
-
-  const initialized = { guided: false, complaints: false, vc: false };
-
-  const originalShowScreen = showScreen;
-  window.showScreen = function(id){
-    originalShowScreen(id);
-    if(id === 'guided' && !initialized.guided){
-      renderDecisionTree(guidedRoot, guidedTree);
-      initialized.guided = true;
-    }
-    if(id === 'complaints' && !initialized.complaints){
-      renderDecisionTree(complaintsRoot, complaintsTree);
-      initialized.complaints = true;
-    }
-    if(id === 'vc' && !initialized.vc){
-      renderDecisionTree(vcRoot, vcTree);
-      initialized.vc = true;
-    }
-  };
-
-  // --- Knowledge Portal implementation (unchanged) ---
-  const kbArticles = [
-    {
-      id: 'reset_password',
-      title: 'Resetting Customer Password',
-      content: [
-        '1. Navigate to Settings → Security → Reset Password',
-        '2. Confirm identity',
-        '3. Send temporary password via secure channel'
-      ],
-      screenshot: true
-    },
-    {
-      id: 'billing_disputes',
-      title: 'How to handle billing disputes',
-      content: [
-        '1. Verify account and recent charges',
-        '2. Ask for supporting evidence (invoice, dates)',
-        '3. Offer corrective action or escalation'
-      ],
-      screenshot: true
-    },
-    {
-      id: 'idv_best_practices',
-      title: 'ID&V Best Practices',
-      content: [
-        '1. Use at least two matching data points',
-        '2. Avoid closed questions for sensitive checks',
-        '3. Record verification method in call notes'
-      ],
-      screenshot: false
-    }
-  ];
-
-  const kbListEl = document.getElementById('kbList');
-  const kbSearchEl = document.getElementById('kbSearch');
-
-  function renderKB(list){
-    kbListEl.innerHTML = '';
-    list.forEach(a => {
-      const item = document.createElement('div');
-      item.className = 'kb-item';
-      const h = document.createElement('h4');
-      h.innerHTML = `${a.title} <span style="font-weight:600;color:var(--muted);font-size:12px">[${a.id}]</span>`;
-      const toggle = document.createElement('button');
-      toggle.className = 'btn ghost';
-      toggle.textContent = 'Open';
-      toggle.style.marginLeft = '8px';
-      toggle.addEventListener('click', () => {
-        body.classList.toggle('expanded');
-        toggle.textContent = body.classList.contains('expanded') ? 'Close' : 'Open';
-      });
-      h.appendChild(toggle);
-
-      const body = document.createElement('div');
-      body.className = 'kb-body';
-      a.content.forEach(line => {
-        const p = document.createElement('p');
-        p.style.margin = '6px 0';
-        p.textContent = line;
-        body.appendChild(p);
-      });
-      if(a.screenshot){
-        const ss = document.createElement('div');
-        ss.className = 'kb-screenshot';
-        ss.textContent = 'Screenshot Placeholder';
-        body.appendChild(ss);
-      }
-
-      item.appendChild(h);
-      item.appendChild(body);
-      kbListEl.appendChild(item);
-    });
-  }
-
-  renderKB(kbArticles);
-
-  kbSearchEl.addEventListener('input', (e) => {
-    const q = (e.target.value || '').toLowerCase().trim();
-    if(!q){ renderKB(kbArticles); return; }
-    const filtered = kbArticles.filter(a => {
-      return a.title.toLowerCase().includes(q) || a.content.join(' ').toLowerCase().includes(q) || a.id.toLowerCase().includes(q);
-    });
-    renderKB(filtered);
-  });
-
-  // Initialize: show login
-  showScreen('login');
-
-  // Keyboard shortcuts
-  document.addEventListener('keydown', (e) => {
-    if(e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-    if(e.key === 'd' || e.key === 'D') window.showScreen('dashboard');
-    if(e.key === 'l' || e.key === 'L') window.showScreen('login');
-  });
-
-  // Accessibility: focus first focusable element when screen shows
-  const observer = new MutationObserver(() => {
-    const active = document.querySelector('.screen:not([hidden])');
-    if(active){
-      const focusable = active.querySelector('button, [tabindex], input, a');
-      if(focusable) focusable.focus();
-    }
-  });
-  observer.observe(document.body, {attributes:true, subtree:true, childList:true});
-
-})();
+function resetVC() {
+    vcState = {
+        currentStep: 0,
+        answers: {}
+    };
+    renderVCStep();
+}
