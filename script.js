@@ -1,4 +1,4 @@
-// ARBIS Prototype - enhanced navigation and decision tree logic
+// ARBIS Prototype - enhanced Guided Flow with Call Type selection and sample flows
 
 (function(){
   // --- Basic navigation wiring (unchanged) ---
@@ -58,23 +58,19 @@
   openAbout && openAbout.addEventListener('click', () => showScreen('about'));
   aboutBack && aboutBack.addEventListener('click', () => showScreen('dashboard'));
 
-  // --- Generic Decision Tree Engine ---
+  // --- Generic Decision Tree Engine (with router support) ---
   // Node format:
-  // { id: 'start', text: 'Question?', input: false, options: [{label:'Yes', next:'nextNode', note:{k:'ID&V passed', v:'Yes'}}, ...] }
-  // if next === 'end' -> finish
-
+  // { id, text, input?, inputLabel?, inputNoteKey?, options: [{label,next,note,setCallType}], next?, router?, routes: {...}, end? }
   function renderDecisionTree(rootEl, tree, opts = {}) {
-    // state
     let state = {
       currentId: tree.start,
-      history: [], // stack of nodes visited {nodeId, choiceIndex, inputValue}
-      notes: [] // {k,v}
+      history: [], // {nodeId, choiceIndex, inputValue}
+      notes: [],
+      callType: null
     };
 
-    // clear root
     rootEl.innerHTML = '';
 
-    // create UI pieces
     const qEl = document.createElement('div');
     const optionsEl = document.createElement('div');
     const inputWrap = document.createElement('div');
@@ -93,7 +89,6 @@
     rootEl.appendChild(controls);
     rootEl.appendChild(notesEl);
 
-    // controls: Previous, Next, Reset
     const prevBtn = document.createElement('button');
     prevBtn.className = 'btn outline';
     prevBtn.textContent = 'Previous';
@@ -112,15 +107,12 @@
     controls.appendChild(resetBtnLocal);
     controls.appendChild(nextBtn);
 
-    // helper to find node
     function nodeFor(id){ return tree.nodes[id]; }
 
-    // track selection for current node
     let selectedIndex = null;
     let inputValue = '';
 
     function render() {
-      // clear option UI
       optionsEl.innerHTML = '';
       inputWrap.innerHTML = '';
       notesEl.innerHTML = '';
@@ -130,22 +122,47 @@
         qEl.textContent = 'Unknown node';
         return;
       }
-      qEl.textContent = node.text || '';
 
-      // input field (if node.input === true)
+      // If node is router: route automatically based on state.callType
+      if(node.router){
+        const routeTarget = node.routes && (node.routes[state.callType] || node.default);
+        if(routeTarget){
+          state.currentId = routeTarget;
+          // We immediately render the routed node
+          render();
+          return;
+        } else {
+          qEl.textContent = node.text || '';
+        }
+      }
+
+      // display question text + small note of call type (if set)
+      qEl.innerHTML = '';
+      const qText = document.createElement('div');
+      qText.textContent = node.text || '';
+      qEl.appendChild(qText);
+      if(state.callType){
+        const small = document.createElement('div');
+        small.className = 'small-note';
+        small.textContent = `Call Type: ${state.callType}`;
+        qEl.appendChild(small);
+      }
+
+      // input
       if(node.input){
         const label = document.createElement('label');
         label.textContent = node.inputLabel || 'Details';
         const inp = node.inputType === 'textarea' ? document.createElement('textarea') : document.createElement('input');
         inp.placeholder = node.inputPlaceholder || '';
-        inp.value = state.history.length && state.history[state.history.length-1] && state.history[state.history.length-1].inputValue && state.history[state.history.length-1].nodeId === node.id ? state.history[state.history.length-1].inputValue : '';
+        // restore if available in history for this node
+        const hist = state.history.find(h => h.nodeId === node.id);
+        if(hist && hist.inputValue) inp.value = hist.inputValue;
         inp.addEventListener('input', (e) => {
           inputValue = e.target.value;
           nextBtn.disabled = !inputValue.trim();
         });
         inputWrap.appendChild(label);
         inputWrap.appendChild(inp);
-        // set initial inputValue
         inputValue = inp.value || '';
         nextBtn.disabled = !inputValue.trim();
       } else {
@@ -160,7 +177,6 @@
           b.type = 'button';
           b.textContent = opt.label;
           b.addEventListener('click', () => {
-            // visually select
             Array.from(optionsEl.children).forEach(ch => ch.classList.remove('selected'));
             b.classList.add('selected');
             selectedIndex = i;
@@ -169,9 +185,9 @@
           optionsEl.appendChild(b);
         });
 
-        // restore previous selection if returning
-        const last = state.history[state.history.length-1];
-        if(last && last.nodeId === node.id && typeof last.choiceIndex === 'number'){
+        // restore selection from history if present
+        const last = state.history.find(h => h.nodeId === node.id);
+        if(last && typeof last.choiceIndex === 'number'){
           const buttonToSelect = optionsEl.children[last.choiceIndex];
           if(buttonToSelect){
             buttonToSelect.classList.add('selected');
@@ -180,11 +196,9 @@
           }
         }
       } else {
-        // no options -> enable next when input or direct
         nextBtn.disabled = node.input ? !inputValue.trim() : false;
       }
 
-      // previous button enablement
       prevBtn.disabled = state.history.length === 0;
 
       // render notes summary
@@ -207,41 +221,40 @@
       }
     }
 
-    // goNext: commit current selection/input and navigate
     function goNext(){
       const node = nodeFor(state.currentId);
-      // if node expects input only
       let chosenOption = null;
       if(node.options && node.options.length && typeof selectedIndex === 'number'){
         chosenOption = node.options[selectedIndex];
       }
 
-      // prepare history entry
       const histEntry = { nodeId: node.id, choiceIndex: typeof selectedIndex === 'number' ? selectedIndex : null, inputValue: inputValue || null };
       state.history.push(histEntry);
 
-      // commit notes for chosen option and/or input
+      // commit notes
       if(chosenOption && chosenOption.note){
-        // push note
         state.notes.push({ k: chosenOption.note.k, v: chosenOption.note.v });
       }
+      if(chosenOption && chosenOption.setCallType){
+        state.callType = chosenOption.setCallType;
+        // also add note indicating call type
+        state.notes.push({ k: 'Call type', v: state.callType });
+      }
       if(node.input && node.inputNoteKey && inputValue){
-        // store input as note
         state.notes.push({ k: node.inputNoteKey, v: inputValue });
       }
 
-      // determine next id
+      // determine next
       let nextId = null;
       if(chosenOption && chosenOption.next) nextId = chosenOption.next;
       else if(node.next) nextId = node.next;
       else nextId = 'end';
 
-      // reset selection trackers
       selectedIndex = null;
       inputValue = '';
 
+      // handle 'end' special-case
       if(nextId === 'end'){
-        // render summary and copy notes button
         renderEnd();
       } else {
         state.currentId = nextId;
@@ -251,36 +264,35 @@
 
     function goPrev(){
       if(state.history.length === 0) return;
-      // pop last history
-      const last = state.history.pop();
-      // also remove any notes that were added by that history step.
-      // We'll remove last N notes where N equals number of note keys associated with that pop.
-      // For simplicity, we reconstruct notes from remaining history:
+      state.history.pop();
+      // reconstruct notes from history
       state.notes = [];
+      state.callType = null;
       for(const h of state.history){
         const nNode = nodeFor(h.nodeId);
         if(nNode){
           if(typeof h.choiceIndex === 'number' && nNode.options && nNode.options[h.choiceIndex] && nNode.options[h.choiceIndex].note){
             state.notes.push({ k: nNode.options[h.choiceIndex].note.k, v: nNode.options[h.choiceIndex].note.v });
           }
+          if(nNode.options && typeof h.choiceIndex === 'number' && nNode.options[h.choiceIndex] && nNode.options[h.choiceIndex].setCallType){
+            state.callType = nNode.options[h.choiceIndex].setCallType;
+            state.notes.push({ k: 'Call type', v: state.callType });
+          }
           if(nNode.input && nNode.inputNoteKey && h.inputValue){
             state.notes.push({ k: nNode.inputNoteKey, v: h.inputValue });
           }
         }
       }
-
-      // set current to previous node (if any), otherwise start
+      // set current to last history or start
       if(state.history.length){
         state.currentId = state.history[state.history.length-1].nodeId;
       } else {
         state.currentId = tree.start;
       }
-      // restore selection of previous node if it was there
       render();
     }
 
     function renderEnd(){
-      // clear UI and show result summary + copy notes + restart
       rootEl.innerHTML = '';
       const endWrap = document.createElement('div');
       endWrap.className = 'flow-end';
@@ -303,7 +315,6 @@
       summary.appendChild(ul);
       endWrap.appendChild(summary);
 
-      // Copy button
       const copyBtn = document.createElement('button');
       copyBtn.className = 'btn primary';
       copyBtn.textContent = 'Copy Notes';
@@ -315,7 +326,6 @@
             setTimeout(()=> copyBtn.textContent = 'Copy Notes', 1200);
           });
         } else {
-          // fallback
           const ta = document.createElement('textarea');
           ta.value = text; document.body.appendChild(ta); ta.select();
           try { document.execCommand('copy'); copyBtn.textContent = 'Copied!'; setTimeout(()=> copyBtn.textContent = 'Copy Notes', 1200); } catch(e){}
@@ -323,18 +333,16 @@
         }
       });
 
-      // Restart and Return to Dashboard
       const retBtn = document.createElement('button');
       retBtn.className = 'btn outline';
       retBtn.textContent = 'Return to Dashboard';
-      retBtn.addEventListener('click', () => showScreen('dashboard'));
+      retBtn.addEventListener('click', () => window.showScreen('dashboard'));
 
       const restartBtn = document.createElement('button');
       restartBtn.className = 'btn ghost';
       restartBtn.textContent = 'Restart Flow';
       restartBtn.addEventListener('click', () => {
-        // reset internal state and render fresh
-        state = { currentId: tree.start, history: [], notes: [] };
+        state = { currentId: tree.start, history: [], notes: [], callType: null };
         rootEl.innerHTML = '';
         rootEl.appendChild(qEl);
         rootEl.appendChild(optionsEl);
@@ -356,99 +364,228 @@
       rootEl.appendChild(endWrap);
     }
 
-    // wire buttons
     nextBtn.addEventListener('click', () => {
       const node = nodeFor(state.currentId);
-      // if node has options but none selected, do nothing
       if(node.options && node.options.length && typeof selectedIndex !== 'number') return;
-      // if node requires input and inputValue empty, do nothing
       if(node.input && !inputValue) return;
-      // if node has selected option that includes an input prompt (option.input) we might need to handle; for now options don't include inputs
-      // special-case: if next is 'end' via node.next or option.next -> renderEnd
-      const chosen = node.options && selectedIndex !== null ? node.options[selectedIndex] : null;
-      const nextId = chosen && chosen.next ? chosen.next : (node.next ? node.next : 'end');
-      // store note values (handled in goNext)
       goNext();
     });
 
     prevBtn.addEventListener('click', goPrev);
     resetBtnLocal.addEventListener('click', () => {
-      state = { currentId: tree.start, history: [], notes: [] };
+      state = { currentId: tree.start, history: [], notes: [], callType: null };
       selectedIndex = null; inputValue = '';
       render();
     });
 
-    // initialize
     render();
   }
 
-  // --- Define Guided Flow Tree ---
+  // --- Guided Flow Tree (expanded with call-type routing) ---
   const guidedTree = {
-    start: 'idv_check',
+    start: 'call_type',
     endTitle: 'Guided Flow Complete',
     nodes: {
+      call_type: {
+        id: 'call_type',
+        text: 'Select Call Type',
+        options: [
+          { label: 'Billing', next: 'idv_check', setCallType: 'Billing', note: { k: 'Call type', v: 'Billing' } },
+          { label: 'Technical Support', next: 'idv_check', setCallType: 'Technical Support', note: { k: 'Call type', v: 'Technical Support' } },
+          { label: 'Account Update', next: 'idv_check', setCallType: 'Account Update', note: { k: 'Call type', v: 'Account Update' } },
+          { label: 'General Inquiry', next: 'idv_check', setCallType: 'General Inquiry', note: { k: 'Call type', v: 'General Inquiry' } }
+        ]
+      },
+
+      // ID&V step (common)
       idv_check: {
         id: 'idv_check',
         text: 'Has ID&V been passed?',
         options: [
-          { label: 'Yes', next: 'complaint_check', note: { k: 'ID&V passed', v: 'Yes' } },
+          { label: 'Yes', next: 'post_idv_router', note: { k: 'ID&V passed', v: 'Yes' } },
           { label: 'No', next: 'perform_idv', note: { k: 'ID&V passed', v: 'No' } }
         ]
       },
       perform_idv: {
         id: 'perform_idv',
-        text: 'Please perform ID&V before proceeding. After performing ID&V, has it passed?',
+        text: 'Please perform ID&V now. After performing ID&V, has it passed?',
         options: [
-          { label: 'Now Passed', next: 'complaint_check', note: { k: 'ID&V performed', v: 'Now Passed' } },
+          { label: 'Now Passed', next: 'post_idv_router', note: { k: 'ID&V performed', v: 'Now Passed' } },
           { label: 'Still Not Passed', next: 'end', note: { k: 'ID&V performed', v: 'Failed' } }
         ]
       },
-      complaint_check: {
-        id: 'complaint_check',
-        text: 'Is there a complaint to log?',
+
+      // Router node: routes to call-type-specific first step after ID&V
+      post_idv_router: {
+        id: 'post_idv_router',
+        router: true,
+        // routes keyed by call type values used in call_type options
+        routes: {
+          'Billing': 'billing_issue',
+          'Technical Support': 'tech_troubleshoot_start',
+          'Account Update': 'account_update_start',
+          'General Inquiry': 'general_flow_start'
+        },
+        default: 'general_flow_start'
+      },
+
+      // Billing flow
+      billing_issue: {
+        id: 'billing_issue',
+        text: 'Is the issue related to an incorrect charge or missing credit?',
         options: [
-          { label: 'Yes', next: 'complaint_description', note: { k: 'Complaint logged', v: 'Yes' } },
-          { label: 'No', next: 'vulnerability_check', note: { k: 'Complaint logged', v: 'No' } }
+          { label: 'Incorrect charge', next: 'billing_amount', note: { k: 'Billing issue type', v: 'Incorrect charge' } },
+          { label: 'Missing credit', next: 'billing_amount', note: { k: 'Billing issue type', v: 'Missing credit' } },
+          { label: 'Other', next: 'billing_description', note: { k: 'Billing issue type', v: 'Other' } }
         ]
       },
-      complaint_description: {
-        id: 'complaint_description',
-        text: 'Briefly describe the complaint:',
+      billing_amount: {
+        id: 'billing_amount',
+        text: 'Confirm the charged amount with the customer. Enter the amount if provided:',
         input: true,
-        inputLabel: 'Complaint description',
-        inputPlaceholder: 'Enter summary of complaint (required)',
-        inputNoteKey: 'Complaint description',
-        next: 'vulnerability_check'
+        inputLabel: 'Amount (e.g., $xx.xx)',
+        inputPlaceholder: 'Enter amount (optional)',
+        inputNoteKey: 'Reported amount',
+        next: 'billing_resolution'
       },
-      vulnerability_check: {
-        id: 'vulnerability_check',
-        text: 'Is the customer vulnerable or in a sensitive situation?',
+      billing_description: {
+        id: 'billing_description',
+        text: 'Describe the billing problem briefly:',
+        input: true,
+        inputLabel: 'Description',
+        inputPlaceholder: 'Customer describes the issue',
+        inputNoteKey: 'Billing description',
+        next: 'billing_resolution'
+      },
+      billing_resolution: {
+        id: 'billing_resolution',
+        text: 'Suggested resolution: Offer refund/adjustment or escalate. Was a resolution agreed?',
         options: [
-          { label: 'Yes', next: 'vuln_details', note: { k: 'Vulnerability identified', v: 'Yes' } },
-          { label: 'No', next: 'resolution_step', note: { k: 'Vulnerability identified', v: 'No' } }
+          { label: 'Agreed refund/adjustment', next: 'end', note: { k: 'Billing resolution', v: 'Agreed' } },
+          { label: 'Escalate', next: 'end', note: { k: 'Billing resolution', v: 'Escalated' } }
         ]
       },
-      vuln_details: {
-        id: 'vuln_details',
-        text: 'Optional: describe vulnerability / supports required:',
-        input: true,
-        inputLabel: 'Vulnerability notes',
-        inputPlaceholder: '(optional) notes',
-        inputNoteKey: 'Vulnerability details',
-        next: 'resolution_step'
-      },
-      resolution_step: {
-        id: 'resolution_step',
-        text: 'Suggested resolution: Offer standard remediation. Was resolution accepted?',
+
+      // Technical support flow
+      tech_troubleshoot_start: {
+        id: 'tech_troubleshoot_start',
+        text: 'Is the issue related to connectivity or device/app?',
         options: [
-          { label: 'Accepted', next: 'end', note: { k: 'Resolution accepted', v: 'Yes' } },
-          { label: 'Not accepted', next: 'end', note: { k: 'Resolution accepted', v: 'No' } }
+          { label: 'Connectivity', next: 'tech_connectivity', note: { k: 'Tech issue area', v: 'Connectivity' } },
+          { label: 'Device/App', next: 'tech_device', note: { k: 'Tech issue area', v: 'Device/App' } },
+          { label: 'Other', next: 'tech_other', note: { k: 'Tech issue area', v: 'Other' } }
+        ]
+      },
+      tech_connectivity: {
+        id: 'tech_connectivity',
+        text: 'Ask customer to restart the device and confirm if issue persists. Did restart resolve it?',
+        options: [
+          { label: 'Resolved', next: 'end', note: { k: 'Tech troubleshooting', v: 'Restart resolved' } },
+          { label: 'Not resolved', next: 'tech_escalate', note: { k: 'Tech troubleshooting', v: 'Not resolved' } }
+        ]
+      },
+      tech_device: {
+        id: 'tech_device',
+        text: 'Collect device model and OS/version:',
+        input: true,
+        inputLabel: 'Device model / OS',
+        inputPlaceholder: 'e.g., iPhone 12 - iOS 16',
+        inputNoteKey: 'Device info',
+        next: 'tech_escalate'
+      },
+      tech_other: {
+        id: 'tech_other',
+        text: 'Briefly describe the technical issue:',
+        input: true,
+        inputLabel: 'Issue description',
+        inputPlaceholder: 'Customer description',
+        inputNoteKey: 'Tech issue description',
+        next: 'tech_escalate'
+      },
+      tech_escalate: {
+        id: 'tech_escalate',
+        text: 'Recommendation: Escalate to Tier 2. Was issue escalated?',
+        options: [
+          { label: 'Yes, escalated', next: 'end', note: { k: 'Tech escalation', v: 'Yes' } },
+          { label: 'No, provided workaround', next: 'end', note: { k: 'Tech escalation', v: 'No - workaround' } }
+        ]
+      },
+
+      // Account update flow
+      account_update_start: {
+        id: 'account_update_start',
+        text: 'Is the customer requesting personal details update or service change?',
+        options: [
+          { label: 'Personal details', next: 'account_update_details', note: { k: 'Account update type', v: 'Personal details' } },
+          { label: 'Service change', next: 'account_update_service', note: { k: 'Account update type', v: 'Service change' } }
+        ]
+      },
+      account_update_details: {
+        id: 'account_update_details',
+        text: 'Update details: collect field to update (e.g., address, phone). Enter summary:',
+        input: true,
+        inputLabel: 'Update summary',
+        inputPlaceholder: 'e.g., Update phone number to ...',
+        inputNoteKey: 'Account update summary',
+        next: 'account_update_confirm'
+      },
+      account_update_service: {
+        id: 'account_update_service',
+        text: 'Service change: record requested change and confirm service impact:',
+        input: true,
+        inputLabel: 'Service change summary',
+        inputPlaceholder: 'e.g., Upgrade plan to ...',
+        inputNoteKey: 'Service change summary',
+        next: 'account_update_confirm'
+      },
+      account_update_confirm: {
+        id: 'account_update_confirm',
+        text: 'Was the change applied successfully?',
+        options: [
+          { label: 'Yes', next: 'end', note: { k: 'Account update applied', v: 'Yes' } },
+          { label: 'No', next: 'end', note: { k: 'Account update applied', v: 'No' } }
+        ]
+      },
+
+      // General inquiry flow
+      general_flow_start: {
+        id: 'general_flow_start',
+        text: 'What is the main reason for the call? Select one:',
+        options: [
+          { label: 'Product info', next: 'general_info', note: { k: 'General reason', v: 'Product info' } },
+          { label: 'Service hours', next: 'general_info', note: { k: 'General reason', v: 'Service hours' } },
+          { label: 'Other', next: 'general_description', note: { k: 'General reason', v: 'Other' } }
+        ]
+      },
+      general_info: {
+        id: 'general_info',
+        text: 'Provide the information requested and confirm customer understanding. Was the customer satisfied?',
+        options: [
+          { label: 'Satisfied', next: 'end', note: { k: 'General outcome', v: 'Satisfied' } },
+          { label: 'Needs follow-up', next: 'general_followup', note: { k: 'General outcome', v: 'Follow-up' } }
+        ]
+      },
+      general_description: {
+        id: 'general_description',
+        text: 'Please capture a short note about the request:',
+        input: true,
+        inputLabel: 'Request summary',
+        inputPlaceholder: 'Enter summary',
+        inputNoteKey: 'Request summary',
+        next: 'general_followup'
+      },
+      general_followup: {
+        id: 'general_followup',
+        text: 'Is follow-up required?',
+        options: [
+          { label: 'Yes', next: 'end', note: { k: 'Follow-up required', v: 'Yes' } },
+          { label: 'No', next: 'end', note: { k: 'Follow-up required', v: 'No' } }
         ]
       }
     }
   };
 
-  // --- Complaints Assistant Tree ---
+  // --- Complaints Assistant Tree (unchanged from prior) ---
   const complaintsTree = {
     start: 'c_start',
     endTitle: 'Complaints Assistant Result',
@@ -495,7 +632,7 @@
     }
   };
 
-  // --- VC Assistant Tree ---
+  // --- VC Assistant Tree (unchanged) ---
   const vcTree = {
     start: 'v_start',
     endTitle: 'VC Assistant Result',
@@ -538,10 +675,8 @@
   const complaintsRoot = document.getElementById('complaintsFlowRoot');
   const vcRoot = document.getElementById('vcFlowRoot');
 
-  // Render when their screens become visible. We hook into screen changes by overriding showScreen to initialize on first show.
   const initialized = { guided: false, complaints: false, vc: false };
 
-  // Wrap original showScreen to add init
   const originalShowScreen = showScreen;
   window.showScreen = function(id){
     originalShowScreen(id);
@@ -559,7 +694,7 @@
     }
   };
 
-  // --- Knowledge Portal implementation ---
+  // --- Knowledge Portal implementation (unchanged) ---
   const kbArticles = [
     {
       id: 'reset_password',
@@ -634,10 +769,8 @@
     });
   }
 
-  // initial render
   renderKB(kbArticles);
 
-  // search behavior
   kbSearchEl.addEventListener('input', (e) => {
     const q = (e.target.value || '').toLowerCase().trim();
     if(!q){ renderKB(kbArticles); return; }
@@ -647,8 +780,6 @@
     renderKB(filtered);
   });
 
-  // Rewire original initialization: on first show, we want to init if needed
-  // Ensure showScreen used earlier goes through window.showScreen
   // Initialize: show login
   showScreen('login');
 
