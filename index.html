@@ -1,304 +1,105 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>ARBIS — Agentic Resource & Business Information System</title>
-  <link rel="stylesheet" href="styles.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARBIS - Agentic Resource & Business Information System</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <!-- App Container -->
-  <div class="app">
+    <div class="container">
+        <header>
+            <h1>ARBIS</h1>
+            <p class="subtitle">Agentic Resource & Business Information System</p>
+            <button id="resetBtn" class="reset-btn" style="display: none;">Reset to Dashboard</button>
+        </header>
 
-    <!-- Header -->
-    <header class="header">
-      <div class="brand">
-        <div class="logo" aria-hidden="true">
-          <svg width="36" height="36" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
-            <rect x="0" y="0" width="36" height="36" rx="6" fill="#FF6600"/>
-            <path d="M8 24 L18 10 L28 24 Z" fill="#fff"/>
-          </svg>
-        </div>
-        <div>
-          <h1>ARBIS</h1>
-          <p class="subtitle">Agentic Resource & Business Information System</p>
-        </div>
-      </div>
+        <main id="mainContent">
+            <section id="dashboard" class="module-section active">
+                <h2>Dashboard</h2>
+                <div class="card-grid">
+                    <div class="card" data-module="guidedFlow">
+                        <h3>Guided Flow (E-Prompts)</h3>
+                        <p>Assist agents during calls with structured prompts and branching logic</p>
+                    </div>
+                    <div class="card" data-module="knowledgePortal">
+                        <h3>Knowledge Portal</h3>
+                        <p>Access detailed articles, guides, and system documentation</p>
+                    </div>
+                    <div class="card" data-module="complaintsAssistant">
+                        <h3>Complaints Assistant</h3>
+                        <p>Decision tree to guide complaint logging process</p>
+                    </div>
+                    <div class="card" data-module="vcAssistant">
+                        <h3>VC Assistant</h3>
+                        <p>Identify and support vulnerable customers</p>
+                    </div>
+                </div>
+            </section>
 
-      <nav class="header-actions" aria-label="Top navigation">
-        <button id="resetBtn" class="btn ghost" title="Reset to Dashboard">Reset</button>
-        <button id="aboutToggle" class="btn ghost" title="About ARBIS">About</button>
-      </nav>
-    </header>
+            <section id="guidedFlow" class="module-section">
+                <h2>Guided Flow (E-Prompts)</h2>
+                <div class="flow-container">
+                    <div id="flowStep" class="step-container">
+                        <h3 id="flowQuestion"></h3>
+                        <div id="flowPhrases" class="phrases-container"></div>
+                        <div id="flowOptions" class="options-container"></div>
+                    </div>
+                    <div class="flow-controls">
+                        <button id="flowPrevBtn" class="btn-secondary">Previous</button>
+                        <button id="flowNextBtn" class="btn-primary">Next</button>
+                    </div>
+                    <div id="flowNotes" class="notes-container" style="display: none;">
+                        <h3>Call Notes</h3>
+                        <pre id="flowNotesContent"></pre>
+                        <button id="flowCopyBtn" class="btn-primary">Copy Notes</button>
+                        <button id="flowRestartBtn" class="btn-secondary">Start New Call</button>
+                    </div>
+                </div>
+            </section>
 
-    <!-- Layout -->
-    <div class="layout">
+            <section id="knowledgePortal" class="module-section">
+                <h2>Knowledge Portal</h2>
+                <div class="knowledge-container">
+                    <div class="search-container">
+                        <input type="text" id="knowledgeSearch" placeholder="Search articles and guides...">
+                    </div>
+                    <div id="articlesContainer" class="articles-container"></div>
+                </div>
+            </section>
 
-      <!-- Sidebar -->
-      <aside class="sidebar" aria-label="Main modules">
-        <ul class="module-nav" id="moduleNav">
-          <li><button class="nav-link" data-target="guided">Guided Flow</button></li>
-          <li><button class="nav-link" data-target="knowledge">Knowledge Portal</button></li>
-          <li><button class="nav-link" data-target="complaints">Complaints Assistant</button></li>
-          <li><button class="nav-link" data-target="vc">VC Assistant</button></li>
-          <li><button class="nav-link" data-target="verbatim">Verbatim Analyzer</button></li>
-          <li><button class="nav-link" data-target="usage">Usage Tracker</button></li>
-        </ul>
-      </aside>
+            <section id="complaintsAssistant" class="module-section">
+                <h2>Complaints Assistant</h2>
+                <div class="decision-container">
+                    <div id="complaintsStep" class="step-container">
+                        <h3 id="complaintsQuestion"></h3>
+                        <div id="complaintsOptions" class="options-container"></div>
+                    </div>
+                    <div id="complaintsResult" class="result-container" style="display: none;">
+                        <h3 id="complaintsResultTitle"></h3>
+                        <div id="complaintsNotes" class="notes-summary"></div>
+                        <button id="complaintsRestartBtn" class="btn-secondary">Start New Assessment</button>
+                    </div>
+                </div>
+            </section>
 
-      <!-- Main content -->
-      <main class="main" id="mainContent">
-
-        <!-- Login Screen (initial view) -->
-        <section id="login" class="screen active" aria-labelledby="loginTitle">
-          <div class="card login-card animate-up">
-            <h2 id="loginTitle">Welcome to ARBIS</h2>
-            <p class="muted">A lightweight prototype — enter any username and password to continue.</p>
-            <form id="loginForm" class="login-form" onsubmit="return false;">
-              <label>
-                Username
-                <input type="text" id="username" placeholder="your.name" required />
-              </label>
-              <label>
-                Password
-                <input type="password" id="password" placeholder="••••••••" required />
-              </label>
-              <div class="actions">
-                <button id="loginBtn" class="btn primary">Login</button>
-                <button id="demoBtn" class="btn outline">Use Demo</button>
-              </div>
-            </form>
-            <p class="small muted">No real authentication is performed in this prototype.</p>
-          </div>
-        </section>
-
-        <!-- Dashboard / Front Page -->
-        <section id="dashboard" class="screen" aria-labelledby="dashTitle" hidden>
-          <div class="dashboard-header">
-            <div>
-              <h2 id="dashTitle">Dashboard</h2>
-              <p class="muted">Quick access to ARBIS modules and intelligence resources.</p>
-            </div>
-            <div class="dash-actions">
-              <button class="btn" id="openAbout">About</button>
-            </div>
-          </div>
-
-          <!-- Quick Module Cards -->
-          <div class="cards-grid" id="moduleGrid">
-            <article class="card module-card" data-target="guided" tabindex="0" role="button" aria-pressed="false">
-              <div class="card-icon orange">GF</div>
-              <h3>Guided Flow</h3>
-              <p class="muted">Step-by-step e-prompts to guide agents through interactions.</p>
-              <div class="card-footer">Launch</div>
-            </article>
-
-            <article class="card module-card" data-target="knowledge" tabindex="0" role="button" aria-pressed="false">
-              <div class="card-icon blue">KP</div>
-              <h3>Knowledge Portal</h3>
-              <p class="muted">Searchable knowledge base, articles, and SOPs.</p>
-              <div class="card-footer">Explore</div>
-            </article>
-
-            <article class="card module-card" data-target="complaints" tabindex="0" role="button" aria-pressed="false">
-              <div class="card-icon orange">CA</div>
-              <h3>Complaints Assistant</h3>
-              <p class="muted">Capture, triage and suggest remediation paths for complaints.</p>
-              <div class="card-footer">Assist</div>
-            </article>
-
-            <article class="card module-card" data-target="vc" tabindex="0" role="button" aria-pressed="false">
-              <div class="card-icon blue">VC</div>
-              <h3>VC Assistant</h3>
-              <p class="muted">Virtual coach for agent conversations and objections handling.</p>
-              <div class="card-footer">Coach</div>
-            </article>
-
-            <article class="card module-card" data-target="verbatim" tabindex="0" role="button" aria-pressed="false">
-              <div class="card-icon orange">VA</div>
-              <h3>Verbatim Analyzer</h3>
-              <p class="muted">Analyze customer verbatims, extract topics and sentiment.</p>
-              <div class="card-footer">Analyze</div>
-            </article>
-
-            <article class="card module-card" data-target="usage" tabindex="0" role="button" aria-pressed="false">
-              <div class="card-icon blue">UT</div>
-              <h3>Usage Tracker</h3>
-              <p class="muted">Monitor module usage, KPIs and adoption metrics.</p>
-              <div class="card-footer">View</div>
-            </article>
-          </div>
-
-          <!-- ARBIS Intelligence Framework visual -->
-          <section class="framework card">
-            <h3>ARBIS Intelligence Framework</h3>
-            <p class="muted">A simplified visual of the framework showing input → intelligence → action.</p>
-            <div class="framework-diagram" aria-hidden="true">
-              <div class="fw-col">
-                <div class="fw-box">Data Sources<br/><small>Calls, Chat, Docs</small></div>
-              </div>
-              <div class="fw-col">
-                <div class="fw-box primary">Processing<br/><small>NLP • Analytics</small></div>
-              </div>
-              <div class="fw-col">
-                <div class="fw-box">Applications<br/><small>Guided Flow, Assistants</small></div>
-              </div>
-            </div>
-          </section>
-        </section>
-
-        <!-- Guided Flow Module (interactive decision tree) -->
-        <section id="guided" class="screen module-screen" aria-labelledby="guidedTitle" hidden>
-          <div class="card module-page animate-up">
-            <div class="module-meta">
-              <h2 id="guidedTitle">Guided Flow (E-Prompts)</h2>
-              <p class="muted">Start by selecting the Call Type, complete ID&V, and proceed through a tailored flow. Choices are tracked and summarized into call notes at the end.</p>
-            </div>
-
-            <div id="guidedFlowRoot" class="flow-root">
-              <!-- dynamic content injected here -->
-            </div>
-
-            <div class="module-actions">
-              <button class="btn outline backBtn">Back to Dashboard</button>
-              <button class="btn primary" id="guidedReset">Reset</button>
-            </div>
-          </div>
-        </section>
-
-        <!-- Knowledge Portal (searchable, collapsible) -->
-        <section id="knowledge" class="screen module-screen" aria-labelledby="knowledgeTitle" hidden>
-          <div class="card module-page animate-up">
-            <div class="module-meta">
-              <h2 id="knowledgeTitle">Knowledge Portal</h2>
-              <p class="muted">Centralized knowledge base with articles, FAQs, and SOPs for quick agent reference.</p>
-            </div>
-
-            <div class="kb-controls">
-              <input id="kbSearch" placeholder="Search articles or steps..." />
-            </div>
-
-            <div id="kbList" class="kb-list">
-              <!-- articles injected here -->
-            </div>
-
-            <div class="module-actions">
-              <button class="btn outline backBtn">Back to Dashboard</button>
-              <button class="btn primary" id="knowledgeReset">Reset</button>
-            </div>
-          </div>
-        </section>
-
-        <!-- Complaints Assistant (decision tree) -->
-        <section id="complaints" class="screen module-screen" aria-labelledby="complaintsTitle" hidden>
-          <div class="card module-page animate-up">
-            <div class="module-meta">
-              <h2 id="complaintsTitle">Complaints Assistant</h2>
-              <p class="muted">Structured intake with branching logic. At the end, a recommendation will be shown.</p>
-            </div>
-
-            <div id="complaintsFlowRoot" class="flow-root"></div>
-
-            <div class="module-actions">
-              <button class="btn outline backBtn">Back to Dashboard</button>
-              <button class="btn primary" id="complaintsReset">Reset</button>
-            </div>
-          </div>
-        </section>
-
-        <!-- VC Assistant (decision tree) -->
-        <section id="vc" class="screen module-screen" aria-labelledby="vcTitle" hidden>
-          <div class="card module-page animate-up">
-            <div class="module-meta">
-              <h2 id="vcTitle">VC Assistant</h2>
-              <p class="muted">Virtual coach decision flow to assess vulnerability and provide recommendations.</p>
-            </div>
-
-            <div id="vcFlowRoot" class="flow-root"></div>
-
-            <div class="module-actions">
-              <button class="btn outline backBtn">Back to Dashboard</button>
-              <button class="btn primary" id="vcReset">Reset</button>
-            </div>
-          </div>
-        </section>
-
-        <!-- Verbatim Analyzer -->
-        <section id="verbatim" class="screen module-screen" aria-labelledby="verbatimTitle" hidden>
-          <div class="card module-page animate-up">
-            <div class="module-meta">
-              <h2 id="verbatimTitle">Verbatim Analyzer</h2>
-              <p class="muted">Extract themes, topics, and sentiment from customer verbatims and transcripts.</p>
-            </div>
-
-            <div class="example">
-              <h4>Example: Quick Analysis</h4>
-              <div class="word-cloud">
-                <span style="font-size:18px">billing</span>
-                <span style="font-size:28px">delay</span>
-                <span style="font-size:14px">refund</span>
-                <span style="font-size:22px">support</span>
-                <span style="font-size:16px">timeout</span>
-              </div>
-            </div>
-
-            <div class="module-actions">
-              <button class="btn outline backBtn">Back to Dashboard</button>
-              <button class="btn primary" id="verbatimReset">Reset</button>
-            </div>
-          </div>
-        </section>
-
-        <!-- Usage Tracker -->
-        <section id="usage" class="screen module-screen" aria-labelledby="usageTitle" hidden>
-          <div class="card module-page animate-up">
-            <div class="module-meta">
-              <h2 id="usageTitle">Usage Tracker</h2>
-              <p class="muted">Visualize adoption and module usage over time. Useful for prioritization and ROI analysis.</p>
-            </div>
-
-            <div class="example">
-              <h4>Example: Usage Snapshot</h4>
-              <div class="usage-chart">
-                <div class="bar" style="height:60%"><small>Guided</small></div>
-                <div class="bar" style="height:40%"><small>Knowledge</small></div>
-                <div class="bar" style="height:25%"><small>Complaints</small></div>
-                <div class="bar" style="height:45%"><small>VC</small></div>
-                <div class="bar" style="height:35%"><small>Verbatim</small></div>
-                <div class="bar" style="height:50%"><small>Usage</small></div>
-              </div>
-            </div>
-
-            <div class="module-actions">
-              <button class="btn outline backBtn">Back to Dashboard</button>
-              <button class="btn primary" id="usageReset">Reset</button>
-            </div>
-          </div>
-        </section>
-
-        <!-- About / Intro -->
-        <section id="about" class="screen card about-section" hidden>
-          <div class="animate-up">
-            <h2>About ARBIS</h2>
-            <p class="muted">ARBIS is an integrated suite of agent-facing tools — guided flows, knowledge portal, complaints and VC assistants, verbatim analytics and usage insights — designed to improve consistency, compliance and agent performance.</p>
-
-            <h4>Core Features & Intro</h4>
-            <ul>
-              <li><span class="core">★</span> Agent-facing intelligence and coaching</li>
-              <li><span class="core">★</span> Integrated knowledge and analytics</li>
-              <li><span class="secondary">▲</span> Extensible — designed for future integrations</li>
-            </ul>
-
-            <div class="module-actions">
-              <button class="btn outline" id="aboutBack">Close</button>
-            </div>
-          </div>
-        </section>
-
-      </main>
+            <section id="vcAssistant" class="module-section">
+                <h2>VC Assistant (Vulnerable Customer)</h2>
+                <div class="decision-container">
+                    <div id="vcStep" class="step-container">
+                        <h3 id="vcQuestion"></h3>
+                        <div id="vcOptions" class="options-container"></div>
+                    </div>
+                    <div id="vcResult" class="result-container" style="display: none;">
+                        <h3 id="vcResultTitle"></h3>
+                        <div id="vcNotes" class="notes-summary"></div>
+                        <button id="vcRestartBtn" class="btn-secondary">Start New Assessment</button>
+                    </div>
+                </div>
+            </section>
+        </main>
     </div>
-  </div>
 
-  <script src="script.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
