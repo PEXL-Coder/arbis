@@ -14,7 +14,6 @@
     <header class="header">
       <div class="brand">
         <div class="logo" aria-hidden="true">
-          <!-- simple geometric logo -->
           <svg width="36" height="36" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
             <rect x="0" y="0" width="36" height="36" rx="6" fill="#FF6600"/>
             <path d="M8 24 L18 10 L28 24 Z" fill="#fff"/>
@@ -148,33 +147,16 @@
           </section>
         </section>
 
-        <!-- Module Pages -->
-        <!-- Template structure repeats for each module, hidden by default -->
+        <!-- Guided Flow Module (interactive decision tree) -->
         <section id="guided" class="screen module-screen" aria-labelledby="guidedTitle" hidden>
           <div class="card module-page animate-up">
             <div class="module-meta">
               <h2 id="guidedTitle">Guided Flow (E-Prompts)</h2>
-              <p class="muted">Interactive, step-by-step prompts to help agents through calls and chats, ensuring consistency and compliance.</p>
+              <p class="muted">Interactive, step-by-step prompts. Choices are tracked and summarized into call notes at the end.</p>
             </div>
 
-            <div class="features">
-              <h4>Features</h4>
-              <ul>
-                <li><span class="core">★</span> Dynamic Prompts that adapt to inputs</li>
-                <li><span class="core">★</span> Structured scripts with branching logic</li>
-                <li><span class="secondary">▲</span> Suggested phrasings and tone guidance</li>
-                <li><span class="secondary">▲</span> Integration-ready export (CSV)</li>
-              </ul>
-            </div>
-
-            <div class="example">
-              <h4>Example: Step-by-Step Prompt</h4>
-              <div class="prompt-flow">
-                <div class="step">Step 1: Greet customer & verify</div>
-                <div class="step">Step 2: Ask permission to review account</div>
-                <div class="step">Step 3: Suggest resolution paths</div>
-                <div class="step">Step 4: Close with confirmation</div>
-              </div>
+            <div id="guidedFlowRoot" class="flow-root">
+              <!-- dynamic content injected here -->
             </div>
 
             <div class="module-actions">
@@ -184,6 +166,7 @@
           </div>
         </section>
 
+        <!-- Knowledge Portal (searchable, collapsible) -->
         <section id="knowledge" class="screen module-screen" aria-labelledby="knowledgeTitle" hidden>
           <div class="card module-page animate-up">
             <div class="module-meta">
@@ -191,22 +174,12 @@
               <p class="muted">Centralized knowledge base with articles, FAQs, and SOPs for quick agent reference.</p>
             </div>
 
-            <div class="features">
-              <h4>Features</h4>
-              <ul>
-                <li><span class="core">★</span> Search across documents and articles</li>
-                <li><span class="core">★</span> Suggested articles during agent sessions</li>
-                <li><span class="secondary">▲</span> Versioned SOPs</li>
-                <li><span class="secondary">▲</span> Bookmark & quick access</li>
-              </ul>
+            <div class="kb-controls">
+              <input id="kbSearch" placeholder="Search articles or steps..." />
             </div>
 
-            <div class="example">
-              <h4>Example: Article Preview</h4>
-              <div class="doc-preview">
-                <h5>How to handle billing disputes</h5>
-                <p class="muted">Summary: Steps to identify dispute, collect evidence, and offer resolutions.</p>
-              </div>
+            <div id="kbList" class="kb-list">
+              <!-- articles injected here -->
             </div>
 
             <div class="module-actions">
@@ -216,31 +189,15 @@
           </div>
         </section>
 
+        <!-- Complaints Assistant (decision tree) -->
         <section id="complaints" class="screen module-screen" aria-labelledby="complaintsTitle" hidden>
           <div class="card module-page animate-up">
             <div class="module-meta">
               <h2 id="complaintsTitle">Complaints Assistant</h2>
-              <p class="muted">Streamlined complaint capture, triage, prioritisation and suggested next steps.</p>
+              <p class="muted">Structured intake with branching logic. At the end, a recommendation will be shown.</p>
             </div>
 
-            <div class="features">
-              <h4>Features</h4>
-              <ul>
-                <li><span class="core">★</span> Complaint intake templates</li>
-                <li><span class="core">★</span> Auto-triage by severity & tags</li>
-                <li><span class="secondary">▲</span> Suggested remediation scripts</li>
-                <li><span class="secondary">▲</span> Escalation workflows</li>
-              </ul>
-            </div>
-
-            <div class="example">
-              <h4>Example: Triage</h4>
-              <div class="triage">
-                <div class="pill high">High - Escalate</div>
-                <div class="pill med">Medium - Follow-up</div>
-                <div class="pill low">Low - Monitor</div>
-              </div>
-            </div>
+            <div id="complaintsFlowRoot" class="flow-root"></div>
 
             <div class="module-actions">
               <button class="btn outline backBtn">Back to Dashboard</button>
@@ -249,27 +206,15 @@
           </div>
         </section>
 
+        <!-- VC Assistant (decision tree) -->
         <section id="vc" class="screen module-screen" aria-labelledby="vcTitle" hidden>
           <div class="card module-page animate-up">
             <div class="module-meta">
               <h2 id="vcTitle">VC Assistant</h2>
-              <p class="muted">Virtual coach for agents: call suggestions, objection handling and live tips.</p>
+              <p class="muted">Virtual coach decision flow to assess vulnerability and provide recommendations.</p>
             </div>
 
-            <div class="features">
-              <h4>Features</h4>
-              <ul>
-                <li><span class="core">★</span> Real-time suggestions for objections</li>
-                <li><span class="core">★</span> Role-play practice mode</li>
-                <li><span class="secondary">▲</span> Performance feedback summaries</li>
-                <li><span class="secondary">▲</span> Micro-coaching nudges</li>
-              </ul>
-            </div>
-
-            <div class="example">
-              <h4>Example: Objection Handler</h4>
-              <blockquote class="muted">Customer: "The price is too high." — Suggested response: "I understand — can we explore a solution that meets your budget?"</blockquote>
-            </div>
+            <div id="vcFlowRoot" class="flow-root"></div>
 
             <div class="module-actions">
               <button class="btn outline backBtn">Back to Dashboard</button>
@@ -278,21 +223,12 @@
           </div>
         </section>
 
+        <!-- Verbatim Analyzer (features summary removed) -->
         <section id="verbatim" class="screen module-screen" aria-labelledby="verbatimTitle" hidden>
           <div class="card module-page animate-up">
             <div class="module-meta">
               <h2 id="verbatimTitle">Verbatim Analyzer</h2>
               <p class="muted">Extract themes, topics, and sentiment from customer verbatims and transcripts.</p>
-            </div>
-
-            <div class="features">
-              <h4>Features</h4>
-              <ul>
-                <li><span class="core">★</span> Topic extraction & tag suggestions</li>
-                <li><span class="core">★</span> Sentiment scoring</li>
-                <li><span class="secondary">▲</span> Word cloud visualizations</li>
-                <li><span class="secondary">▲</span> Export tagged datasets</li>
-              </ul>
             </div>
 
             <div class="example">
@@ -313,21 +249,12 @@
           </div>
         </section>
 
+        <!-- Usage Tracker (features summary removed) -->
         <section id="usage" class="screen module-screen" aria-labelledby="usageTitle" hidden>
           <div class="card module-page animate-up">
             <div class="module-meta">
               <h2 id="usageTitle">Usage Tracker</h2>
               <p class="muted">Visualize adoption and module usage over time. Useful for prioritization and ROI analysis.</p>
-            </div>
-
-            <div class="features">
-              <h4>Features</h4>
-              <ul>
-                <li><span class="core">★</span> Module usage dashboard</li>
-                <li><span class="core">★</span> Daily / weekly trends</li>
-                <li><span class="secondary">▲</span> Export reports</li>
-                <li><span class="secondary">▲</span> Adoption heatmaps</li>
-              </ul>
             </div>
 
             <div class="example">
