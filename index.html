@@ -1,53 +1,111 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ARBIS - Agentic Resource & Business Information System</title>
     <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
-    <div class="container">
-        <header>
-            <h1>ARBIS</h1>
-            <p class="subtitle">Agentic Resource & Business Information System</p>
-            <button id="resetBtn" class="reset-btn" style="display: none;">Reset to Dashboard</button>
-        </header>
+    <div class="app-layout">
+        <!-- Sidebar Navigation -->
+        <nav class="app-sidebar">
+            <div class="sidebar-header">
+                <h2>ARBIS</h2>
+            </div>
+            <ul class="nav-links">
+                <li class="nav-item active" data-target="dashboard">Dashboard</li>
+                <li class="nav-item" data-target="guidedFlow">Guided Flow</li>
+                <li class="nav-item" data-target="knowledgePortal">Knowledge Hub</li>
+                <li class="nav-item" data-target="complaintsAssistant">Complaints</li>
+                <li class="nav-item" data-target="vcAssistant">VC Assistant</li>
+                <li class="nav-item" data-target="verbatimAnalyzer">Verbatim Analyzer</li>
+            </ul>
+        </nav>
 
-        <main id="mainContent">
-            <section id="dashboard" class="module-section active">
-                <h2>Dashboard</h2>
-                <div class="card-grid">
-                    <div class="card" data-module="guidedFlow">
-                        <h3>Guided Flow (E-Prompts)</h3>
-                        <p>Assist agents during calls with structured prompts and branching logic</p>
-                    </div>
-                    <div class="card" data-module="knowledgePortal">
-                        <h3>Knowledge Portal</h3>
-                        <p>Access detailed articles, guides, and system documentation</p>
-                    </div>
-                    <div class="card" data-module="complaintsAssistant">
-                        <h3>Complaints Assistant</h3>
-                        <p>Decision tree to guide complaint logging process</p>
-                    </div>
-                    <div class="card" data-module="vcAssistant">
-                        <h3>VC Assistant</h3>
-                        <p>Identify and support vulnerable customers</p>
-                    </div>
-                </div>
-            </section>
+        <!-- Main Content Area -->
+        <div class="main-wrapper">
 
-            <section id="guidedFlow" class="module-section">
-                <h2>Guided Flow (E-Prompts)</h2>
-                <div class="flow-container">
+
+            <main id="mainContent">
+                <section id="dashboard" class="module-section active">
+                    <div class="dashboard-grid">
+                        <!-- User Metrics -->
+                        <div class="dash-widget metrics-widget">
+                            <h3>My Performance</h3>
+                            <div class="metrics-container">
+                                <div class="metric-item">
+                                    <span class="metric-value">12</span>
+                                    <span class="metric-label">Calls Handled</span>
+                                </div>
+                                <div class="metric-item">
+                                    <span class="metric-value">4m 30s</span>
+                                    <span class="metric-label">Avg Handle Time</span>
+                                </div>
+                                <div class="metric-item">
+                                    <span class="metric-value">4.8</span>
+                                    <span class="metric-label">CSAT Score</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Frequently Used Articles -->
+                        <div class="dash-widget">
+                            <h3>Frequent Articles</h3>
+                            <ul class="frequent-list" id="frequentArticlesList">
+                                <!-- Populated by JS -->
+                                <li><a href="#" onclick="openArticle(10)">Understanding Cover Types</a></li>
+                                <li><a href="#" onclick="openArticle(7)">Policy Cancellation</a></li>
+                                <li><a href="#" onclick="openArticle(1)">Resetting Password</a></li>
+                            </ul>
+                        </div>
+
+                        <!-- Frequently Used Flows -->
+                        <div class="dash-widget">
+                            <h3>Frequent Flows</h3>
+                            <ul class="frequent-list" id="frequentFlowsList">
+                                <!-- Populated by JS -->
+                                <li><a href="#" onclick="startFlow(0)">New Policy Inquiry</a></li>
+                                <li><a href="#" onclick="startFlow(31)">Change of Address</a></li>
+                                <li><a href="#" onclick="startFlow(34)">Admin Tasks</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="guidedFlow" class="module-section">
+                    <h2>Guided Flow (E-Prompts)</h2>
                     <div id="flowStep" class="step-container">
-                        <h3 id="flowQuestion"></h3>
-                        <div id="flowPhrases" class="phrases-container"></div>
-                        <div id="flowOptions" class="options-container"></div>
+                        <h3 id="flowQuestion" class="flow-question"></h3>
+
+                        <div class="flow-panels">
+                            <!-- Panel 1: Phrases -->
+                            <div class="flow-panel">
+                                <h4>PHRASES</h4>
+                                <div id="flowPhrases" class="panel-content"></div>
+                                <div id="flowRebuttals" class="rebuttals-container" style="display: none;"></div>
+                            </div>
+
+                            <!-- Panel 2: Knowledge Article -->
+                            <div class="flow-panel">
+                                <h4>KNOWLEDGE ARTICLE</h4>
+                                <div id="flowArticles" class="panel-content"></div>
+                            </div>
+
+                            <!-- Panel 3: Navigation -->
+                            <div class="flow-panel">
+                                <h4>NAVIGATION</h4>
+                                <div id="flowScreenshot" class="panel-content system-screenshot"></div>
+                            </div>
+                        </div>
+
+                        <div id="flowOptions" class="options-container flow-options"></div>
                     </div>
                     <div class="flow-controls">
-                        <button id="flowPrevBtn" class="btn-secondary">Previous</button>
-                        <button id="flowNextBtn" class="btn-primary">Next</button>
+                        <button id="flowPrevBtn" class="btn-secondary">PREVIOUS</button>
+                        <button id="flowNextBtn" class="btn-primary">NEXT</button>
                     </div>
                     <div id="flowNotes" class="notes-container" style="display: none;">
                         <h3>Call Notes</h3>
@@ -55,51 +113,89 @@
                         <button id="flowCopyBtn" class="btn-primary">Copy Notes</button>
                         <button id="flowRestartBtn" class="btn-secondary">Start New Call</button>
                     </div>
-                </div>
-            </section>
+                </section>
 
-            <section id="knowledgePortal" class="module-section">
-                <h2>Knowledge Portal</h2>
-                <div class="knowledge-container">
-                    <div class="search-container">
-                        <input type="text" id="knowledgeSearch" placeholder="Search articles and guides...">
+                <section id="knowledgePortal" class="module-section">
+                    <div class="kp-toolbar">
+                        <h2>Knowledge Portal</h2>
+                        <div class="kp-filters">
+                            <input type="text" id="knowledgeSearch" placeholder="Search keywords...">
+                            <select id="knowledgeCategory" class="category-select">
+                                <option value="">All Categories</option>
+                            </select>
+                            <button id="kpSearchBtn" class="btn-primary">Search</button>
+                            <button id="kpClearBtn" class="btn-secondary">Clear</button>
+                        </div>
                     </div>
-                    <div id="articlesContainer" class="articles-container"></div>
-                </div>
-            </section>
 
-            <section id="complaintsAssistant" class="module-section">
-                <h2>Complaints Assistant</h2>
-                <div class="decision-container">
-                    <div id="complaintsStep" class="step-container">
-                        <h3 id="complaintsQuestion"></h3>
-                        <div id="complaintsOptions" class="options-container"></div>
+                    <div class="kp-content">
+                        <div class="results-header">
+                            <h3>Available Articles</h3>
+                            <span id="resultsCount" class="results-count">Showing all articles</span>
+                        </div>
+                        <div id="articlesContainer" class="articles-container"></div>
                     </div>
-                    <div id="complaintsResult" class="result-container" style="display: none;">
-                        <h3 id="complaintsResultTitle"></h3>
-                        <div id="complaintsNotes" class="notes-summary"></div>
-                        <button id="complaintsRestartBtn" class="btn-secondary">Start New Assessment</button>
-                    </div>
-                </div>
-            </section>
+                </section>
 
-            <section id="vcAssistant" class="module-section">
-                <h2>VC Assistant (Vulnerable Customer)</h2>
-                <div class="decision-container">
-                    <div id="vcStep" class="step-container">
-                        <h3 id="vcQuestion"></h3>
-                        <div id="vcOptions" class="options-container"></div>
+                <section id="complaintsAssistant" class="module-section">
+                    <h2>Complaints Assistant</h2>
+                    <div class="decision-container">
+                        <div id="complaintsStep" class="step-container">
+                            <h3 id="complaintsQuestion"></h3>
+                            <div id="complaintsOptions" class="options-container"></div>
+                        </div>
+                        <div id="complaintsResult" class="result-container" style="display: none;">
+                            <h3 id="complaintsResultTitle"></h3>
+                            <div id="complaintsNotes" class="notes-summary"></div>
+                            <button id="complaintsRestartBtn" class="btn-secondary">Start New Assessment</button>
+                        </div>
                     </div>
-                    <div id="vcResult" class="result-container" style="display: none;">
-                        <h3 id="vcResultTitle"></h3>
-                        <div id="vcNotes" class="notes-summary"></div>
-                        <button id="vcRestartBtn" class="btn-secondary">Start New Assessment</button>
+                </section>
+
+                <section id="vcAssistant" class="module-section">
+                    <h2>VC Assistant (Vulnerable Customer)</h2>
+                    <div class="decision-container">
+                        <div id="vcStep" class="step-container">
+                            <h3 id="vcQuestion"></h3>
+                            <div id="vcOptions" class="options-container"></div>
+                        </div>
+                        <div id="vcResult" class="result-container" style="display: none;">
+                            <h3 id="vcResultTitle"></h3>
+                            <div id="vcNotes" class="notes-summary"></div>
+                            <button id="vcRestartBtn" class="btn-secondary">Start New Assessment</button>
+                        </div>
                     </div>
-                </div>
-            </section>
-        </main>
+                </section>
+
+                <section id="verbatimAnalyzer" class="module-section">
+                    <h2>Verbatim Analyzer</h2>
+                    <div class="analyzer-container">
+                        <p>Analyze customer sentiment and key themes from call transcripts.</p>
+                        <textarea id="verbatimInput" placeholder="Paste call transcript or notes here..."
+                            style="width: 100%; height: 150px; margin-bottom: 15px; padding: 10px; border: 1px solid #ccc; border-radius: 4px;"></textarea>
+                        <button id="analyzeBtn" class="btn-primary">Analyze Text</button>
+                        <div id="analysisResult"
+                            style="margin-top: 20px; padding: 15px; background: #f9f9f9; border: 1px solid #eee; border-radius: 4px; display: none;">
+                            <h4>Analysis Results</h4>
+                            <p><strong>Sentiment:</strong> <span id="sentimentResult">Neutral</span></p>
+                            <p><strong>Key Themes:</strong> <span id="themesResult">None detected</span></p>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div> <!-- End main-wrapper -->
+    </div> <!-- End app-layout -->
+    <!-- Article Modal -->
+    <div id="articleModal" class="modal-overlay">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <div id="modalArticleBody">
+                <!-- Content populated by JS -->
+            </div>
+        </div>
     </div>
 
     <script src="script.js"></script>
 </body>
+
 </html>
