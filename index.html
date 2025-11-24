@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ARBIS - Agentic Resource & Business Information System</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="verbatimAnalyzer.css">
 </head>
 
 <body>
@@ -27,8 +28,6 @@
 
         <!-- Main Content Area -->
         <div class="main-wrapper">
-
-
             <main id="mainContent">
                 <section id="dashboard" class="module-section active">
                     <div class="dashboard-grid">
@@ -71,6 +70,16 @@
                                 <li><a href="#" onclick="startFlow(31)">Change of Address</a></li>
                                 <li><a href="#" onclick="startFlow(34)">Admin Tasks</a></li>
                             </ul>
+                        </div>
+
+                        <!-- Verbatim Analysis Insights -->
+                        <div class="dash-widget verbatim-insights">
+                            <h3>Verbatim Analysis Insights</h3>
+                            <div id="verbatimDashboard">
+                                <p class="no-data">No analysis data yet. Visit <a href="#"
+                                        onclick="showModule('verbatimAnalyzer')">Verbatim Analyzer</a> to start
+                                    analyzing.</p>
+                            </div>
                         </div>
                     </div>
                 </section>
@@ -170,21 +179,30 @@
                 <section id="verbatimAnalyzer" class="module-section">
                     <h2>Verbatim Analyzer</h2>
                     <div class="analyzer-container">
-                        <p>Analyze customer sentiment and key themes from call transcripts.</p>
-                        <textarea id="verbatimInput" placeholder="Paste call transcript or notes here..."
-                            style="width: 100%; height: 150px; margin-bottom: 15px; padding: 10px; border: 1px solid #ccc; border-radius: 4px;"></textarea>
-                        <button id="analyzeBtn" class="btn-primary">Analyze Text</button>
-                        <div id="analysisResult"
-                            style="margin-top: 20px; padding: 15px; background: #f9f9f9; border: 1px solid #eee; border-radius: 4px; display: none;">
-                            <h4>Analysis Results</h4>
-                            <p><strong>Sentiment:</strong> <span id="sentimentResult">Neutral</span></p>
-                            <p><strong>Key Themes:</strong> <span id="themesResult">None detected</span></p>
+                        <p>Analyze customer sentiment and key themes from call transcripts with phrase-level breakdown
+                            and coaching feedback.</p>
+
+                        <textarea id="verbatimInput"
+                            placeholder="Paste call transcript or customer feedback here...&#10;&#10;Example:&#10;The agent was quick to solve my problem. However, I had to wait on hold for 20 minutes which was frustrating. Overall, the service was good once I got through."></textarea>
+
+                        <div class="analyzer-controls">
+                            <button id="analyzeBtn" class="btn-primary">Analyze Text</button>
+                            <button id="resetAnalysisBtn" class="btn-secondary">Clear Current Analysis</button>
+                        </div>
+
+                        <div id="analysisResult" style="display: none;">
+                            <!-- Results populated by JavaScript -->
+                        </div>
+
+                        <div id="analysisHistory">
+                            <!-- History populated by JavaScript -->
                         </div>
                     </div>
                 </section>
             </main>
         </div> <!-- End main-wrapper -->
     </div> <!-- End app-layout -->
+
     <!-- Article Modal -->
     <div id="articleModal" class="modal-overlay">
         <div class="modal-content">
@@ -196,6 +214,7 @@
     </div>
 
     <script src="script.js"></script>
+    <script src="verbatimAnalyzer.js"></script>
 </body>
 
 </html>

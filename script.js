@@ -982,7 +982,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initKnowledgePortal();
     initComplaintsAssistant();
     initVCAssistant();
-    initVerbatimAnalyzer();
+    // Verbatim Analyzer now initialized by verbatimAnalyzer.js
 });
 
 // --- Navigation Logic ---
@@ -1052,40 +1052,6 @@ function startFlow(stepId) {
     renderFlowStep();
 }
 
-function initVerbatimAnalyzer() {
-    const analyzeBtn = document.getElementById('analyzeBtn');
-    const resultDiv = document.getElementById('analysisResult');
-    const sentimentSpan = document.getElementById('sentimentResult');
-    const themesSpan = document.getElementById('themesResult');
-
-    if (analyzeBtn) {
-        analyzeBtn.addEventListener('click', () => {
-            const text = document.getElementById('verbatimInput').value;
-            if (text.trim() === "") {
-                alert("Please enter some text to analyze.");
-                return;
-            }
-
-            // Simulate analysis
-            resultDiv.style.display = 'block';
-
-            // Simple dummy logic for demo purposes
-            const lowerText = text.toLowerCase();
-            if (lowerText.includes('angry') || lowerText.includes('upset') || lowerText.includes('complain')) {
-                sentimentSpan.textContent = 'Negative 🔴';
-                sentimentSpan.style.color = 'red';
-            } else if (lowerText.includes('happy') || lowerText.includes('great') || lowerText.includes('thanks')) {
-                sentimentSpan.textContent = 'Positive 🟢';
-                sentimentSpan.style.color = 'green';
-            } else {
-                sentimentSpan.textContent = 'Neutral 🟡';
-                sentimentSpan.style.color = '#E65100';
-            }
-
-            themesSpan.textContent = "Policy Inquiry, Customer Service";
-        });
-    }
-}
 
 function initGuidedFlow() {
     const nextBtn = document.getElementById('flowNextBtn');
