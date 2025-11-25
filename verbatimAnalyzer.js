@@ -840,6 +840,7 @@ class VerbatimAnalyzer {
         const avgScore = history.reduce((sum, h) => sum + h.overall_sentiment_score, 0) / totalAnalyses;
         const totalNegative = history.reduce((sum, h) => sum + h.metrics.negative_count, 0);
         const totalPositive = history.reduce((sum, h) => sum + h.metrics.positive_count, 0);
+        const totalPhrases = history.reduce((sum, h) => sum + h.metrics.total_phrases, 0);
 
         // Count sentiment distribution
         const sentimentCounts = {
@@ -848,20 +849,101 @@ class VerbatimAnalyzer {
             Negative: history.filter(h => h.overall_sentiment === 'Negative').length
         };
 
+        // Track vulnerabilities
+        let vulnerabilityCount = 0;
+        let vulnerabilityTypes = { Financial: 0, Health: 0, 'Age-Related': 0, 'Life Event': 0, Communication: 0 };
+        history.forEach(h => {
+            h.phrase_breakdown.forEach(p => {
+                if (p.has_vulnerability) {
+                    vulnerabilityCount++;
+                    p.vulnerability_types.forEach(type => {
+                        if (vulnerabilityTypes[type] !== undefined) {
+                            vulnerabilityTypes[type]++;
+                        }
+                    });
+                }
+            });
+        });
+
+        // Track escalations
+        const escalationCount = history.reduce((sum, h) => {
+            return sum + h.phrase_breakdown.filter(p => p.has_escalation).length;
+        }, 0);
+
+        // Track urgency
+        const urgencyCount = history.reduce((sum, h) => {
+            return sum + h.phrase_breakdown.filter(p => p.has_urgency).length;
+        }, 0);
+
+        // Track emotional distress
+        const distressCount = history.reduce((sum, h) => {
+            return sum + h.phrase_breakdown.filter(p => p.has_emotional_distress).length;
+        }, 0);
+
+        // Get top negative keywords
+        const keywordFrequency = {};
+        history.forEach(h => {
+            h.phrase_breakdown.forEach(p => {
+                p.keywords.forEach(kw => {
+                    if (kw.includes('[escalation]') || kw.includes('[vulnerable]') || kw.includes('[emotional]')) {
+                        const cleanKw = kw.replace(/\[.*?\]\s*/g, '');
+                        keywordFrequency[cleanKw] = (keywordFrequency[cleanKw] || 0) + 1;
+                    }
+                });
+            });
+        });
+        const topKeywords = Object.entries(keywordFrequency)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 5);
+
+        // Calculate trend (last 3 vs previous)
+        let trend = 'stable';
+        let trendIcon = '➡️';
+        if (history.length >= 6) {
+            const recent3 = history.slice(0, 3).reduce((sum, h) => sum + h.overall_sentiment_score, 0) / 3;
+            const previous3 = history.slice(3, 6).reduce((sum, h) => sum + h.overall_sentiment_score, 0) / 3;
+            if (recent3 > previous3 + 0.1) {
+                trend = 'improving';
+                trendIcon = '📈';
+            } else if (recent3 < previous3 - 0.1) {
+                trend = 'declining';
+                trendIcon = '📉';
+            }
+        }
+
         // Determine primary coaching theme
         let coachingTheme = 'Monitor Quality';
         let coachingColor = '#F59E0B';
+        let actionableInsights = [];
 
         if (avgScore < 0.4) {
             coachingTheme = 'Urgent: Improve Customer Experience';
             coachingColor = '#EF4444';
+            actionableInsights.push('Focus on empathy and acknowledgment');
+            actionableInsights.push('Reduce response time and improve first-call resolution');
         } else if (avgScore >= 0.6) {
             coachingTheme = 'Good Performance - Maintain Standards';
             coachingColor = '#10B981';
+            actionableInsights.push('Continue excellent customer service approach');
+        } else {
+            actionableInsights.push('Improve clarity in communication');
+            actionableInsights.push('Enhance proactive problem-solving');
         }
 
-        // Get recent concerning phrases
-        const recentNegatives = history.slice(0, 3).filter(h => h.overall_sentiment === 'Negative');
+        if (vulnerabilityCount > 0) {
+            actionableInsights.push(`⚠️ ${vulnerabilityCount} vulnerable customer(s) detected - ensure specialist support`);
+        }
+        if (escalationCount > 2) {
+            actionableInsights.push(`🚨 ${escalationCount} escalation(s) - review escalation procedures`);
+        }
+        if (distressCount > 2) {
+            actionableInsights.push(`💔 ${distressCount} emotionally distressed phrase(s) - prioritize empathy training`);
+        }
+
+        // Get most common vulnerability type
+        const topVulnerability = Object.entries(vulnerabilityTypes)
+            .filter(([_, count]) => count > 0)
+            .sort((a, b) => b[1] - a[1])[0];
 
         const html = `
             <div class="dashboard-verbatim-summary">
@@ -872,7 +954,11 @@ class VerbatimAnalyzer {
                     </div>
                     <div class="verbatim-stat">
                         <span class="stat-value" style="color: ${avgScore >= 0.6 ? '#10B981' : avgScore >= 0.4 ? '#F59E0B' : '#EF4444'}">${(avgScore * 100).toFixed(0)}%</span>
-                        <span class="stat-label">Avg Quality</span>
+                        <span class="stat-label">Avg Quality ${trendIcon}</span>
+                    </div>
+                    <div class="verbatim-stat">
+                        <span class="stat-value">${totalPhrases}</span>
+                        <span class="stat-label">Total Phrases</span>
                     </div>
                 </div>
                 
@@ -882,27 +968,54 @@ class VerbatimAnalyzer {
 
                 <div class="sentiment-distribution">
                     <div class="sentiment-bar">
-                        <div class="bar-segment positive" style="width: ${(sentimentCounts.Positive / totalAnalyses * 100)}%"></div>
-                        <div class="bar-segment neutral" style="width: ${(sentimentCounts.Neutral / totalAnalyses * 100)}%"></div>
-                        <div class="bar-segment negative" style="width: ${(sentimentCounts.Negative / totalAnalyses * 100)}%"></div>
+                        <div class="bar-segment positive" style="width: ${(sentimentCounts.Positive / totalAnalyses * 100)}%" title="${sentimentCounts.Positive} Positive"></div>
+                        <div class="bar-segment neutral" style="width: ${(sentimentCounts.Neutral / totalAnalyses * 100)}%" title="${sentimentCounts.Neutral} Neutral"></div>
+                        <div class="bar-segment negative" style="width: ${(sentimentCounts.Negative / totalAnalyses * 100)}%" title="${sentimentCounts.Negative} Negative"></div>
                     </div>
                     <div class="sentiment-labels">
-                        <span class="label-positive">${sentimentCounts.Positive} Positive</span>
-                        <span class="label-neutral">${sentimentCounts.Neutral} Neutral</span>
-                        <span class="label-negative">${sentimentCounts.Negative} Negative</span>
+                        <span class="label-positive">✅ ${sentimentCounts.Positive} Positive</span>
+                        <span class="label-neutral">⚪ ${sentimentCounts.Neutral} Neutral</span>
+                        <span class="label-negative">❌ ${sentimentCounts.Negative} Negative</span>
                     </div>
                 </div>
 
-                ${recentNegatives.length > 0 ? `
-                    <div class="recent-concerns">
-                        <strong>Recent Concerns:</strong>
-                        <ul>
-                            ${recentNegatives.slice(0, 2).map(item =>
-            `<li>${new Date(item.timestamp).toLocaleDateString()} - Score: ${(item.overall_sentiment_score * 100).toFixed(0)}%</li>`
-        ).join('')}
+                ${vulnerabilityCount > 0 || escalationCount > 0 || urgencyCount > 0 ? `
+                    <div class="alert-metrics">
+                        <h4 style="margin: 10px 0 5px 0; font-size: 0.9em; color: #6B7280;">⚠️ Alert Metrics</h4>
+                        <div class="alert-row">
+                            ${vulnerabilityCount > 0 ? `<span class="alert-badge vulnerability">🚨 ${vulnerabilityCount} Vulnerable</span>` : ''}
+                            ${escalationCount > 0 ? `<span class="alert-badge escalation">📞 ${escalationCount} Escalations</span>` : ''}
+                            ${urgencyCount > 0 ? `<span class="alert-badge urgency">⏰ ${urgencyCount} Urgent</span>` : ''}
+                            ${distressCount > 0 ? `<span class="alert-badge distress">💔 ${distressCount} Distressed</span>` : ''}
+                        </div>
+                        ${topVulnerability ? `<p style="font-size: 0.85em; margin: 5px 0; color: #6B7280;">Most common: ${topVulnerability[0]} (${topVulnerability[1]})</p>` : ''}
+                    </div>
+                ` : ''}
+
+                ${topKeywords.length > 0 ? `
+                    <div class="keyword-trends">
+                        <h4 style="margin: 10px 0 5px 0; font-size: 0.9em; color: #6B7280;">🔍 Top Alert Keywords</h4>
+                        <div class="keyword-list">
+                            ${topKeywords.map(([kw, count]) => `<span class="keyword-tag">${kw} (${count})</span>`).join('')}
+                        </div>
+                    </div>
+                ` : ''}
+
+                ${actionableInsights.length > 0 ? `
+                    <div class="actionable-insights">
+                        <h4 style="margin: 10px 0 5px 0; font-size: 0.9em; color: #6B7280;">💡 Actionable Insights</h4>
+                        <ul style="margin: 5px 0; padding-left: 20px; font-size: 0.85em;">
+                            ${actionableInsights.map(insight => `<li>${insight}</li>`).join('')}
                         </ul>
                     </div>
                 ` : ''}
+
+                <div class="phrase-stats" style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #E5E7EB;">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.85em; color: #6B7280;">
+                        <span>📊 Positive Phrases: <strong style="color: #10B981;">${totalPositive}</strong></span>
+                        <span>📊 Negative Phrases: <strong style="color: #EF4444;">${totalNegative}</strong></span>
+                    </div>
+                </div>
 
                 <a href="#" onclick="showModule('verbatimAnalyzer')" class="view-details-link">View Full Analysis →</a>
             </div>
