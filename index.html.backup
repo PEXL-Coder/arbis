@@ -10,7 +10,7 @@
 </head>
 
 <body>
-    <div class="app-layout custom-scrollbar">
+    <div class="app-layout">
         <!-- Sidebar Navigation -->
         <nav class="app-sidebar">
             <div class="sidebar-header">
@@ -27,8 +27,8 @@
         </nav>
 
         <!-- Main Content Area -->
-        <div class="main-wrapper custom-scrollbar">
-            <main id="mainContent custom-scrollbar">
+        <div class="main-wrapper">
+            <main id="mainContent">
                 <section id="dashboard" class="module-section active">
                     <div class="dashboard-grid">
                         <!-- User Metrics -->
@@ -91,47 +91,6 @@
 
                         <div class="flow-panels">
                             <!-- Panel 1: Phrases -->
-                            <div class="flow-panel">
-                                <h4>PHRASES</h4>
-                                <div id="flowPhrases" class="panel-content"></div>
-                                <div id="flowRebuttals" class="rebuttals-container" style="display: none;"></div>
-                            </div>
-
-                            <!-- Panel 2: Knowledge Article -->
-                            <div class="flow-panel">
-                                <h4>KNOWLEDGE ARTICLE</h4>
-                                <div id="flowArticles" class="panel-content"></div>
-                            </div>
-
-                            <!-- Panel 3: Navigation -->
-                            <div class="flow-panel">
-                                <h4>NAVIGATION</h4>
-                                <div id="flowScreenshot" class="panel-content system-screenshot"></div>
-                            </div>
-                        </div>
-
-                        <div id="flowNotes" class="notes-container" style="display: none;">
-                            <h3>Call Notes</h3>
-                            <pre id="flowNotesContent"></pre>
-                            <button id="flowCopyBtn" class="btn-primary">Copy Notes</button>
-                            <button id="flowRestartBtn" class="btn-secondary">Start New Call</button>
-                        </div>
-
-                        <div id="flowOptions" class="options-container flow-options"></div>
-
-
-                    </div>
-                    <div class="flow-controls">
-                        <button id="flowPrevBtn" class="btn-secondary">PREVIOUS</button>
-                        <button id="flowNextBtn" class="btn-primary">NEXT</button>
-                    </div>
-
-                </section>
-
-                <section id="knowledgePortal" class="module-section">
-                    <div class="kp-toolbar">
-                        <h2>Knowledge Portal</h2>
-                        <div class="kp-filters">
                             <input type="text" id="knowledgeSearch" placeholder="Search keywords...">
                             <select id="knowledgeCategory" class="category-select">
                                 <option value="">All Categories</option>
